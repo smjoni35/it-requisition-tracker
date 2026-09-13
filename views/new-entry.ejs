@@ -1,0 +1,85 @@
+<%- include('partials/header', { pageTitle: editing ? 'এন্ট্রি এডিট' : 'নতুন এন্ট্রি', user: user }) %>
+
+<h2><%= editing ? 'এন্ট্রি এডিট করুন' : 'নতুন এন্ট্রি' %></h2>
+<p style="color:#5c5a52; font-size:14px; margin:6px 0 20px;">রিকুইজিশন স্লিপ ও গেট পাস স্লিপ — দুই পাশের তথ্য পূরণ করুন</p>
+
+<% if (error) { %><div class="error-box"><%= error %></div><% } %>
+
+<form method="POST" action="<%= editing ? '/entries/' + entry.id + '/edit' : '/entries/new' %>">
+
+  <div class="slip">
+    <div class="slip-title"><b>রিকুইজিশন স্লিপ</b> — যা চাওয়া হয়েছিল</div>
+
+    <div class="field">
+      <label>আইটেমের নাম *</label>
+      <input type="text" name="item_name" value="<%= entry.item_name || '' %>" placeholder="যেমন: ল্যাপটপ (Dell Latitude)" required>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>রিকুইজিশন নং</label>
+        <input type="text" name="req_no" class="mono" value="<%= entry.req_no || '' %>" placeholder="REQ-2026-001">
+      </div>
+      <div class="field">
+        <label>রিকুইজিশনের তারিখ</label>
+        <input type="date" name="req_date" value="<%= entry.req_date ? entry.req_date.toISOString().slice(0,10) : '' %>">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>বিবরণ / মডেল / স্পেসিফিকেশন</label>
+      <textarea name="description" rows="2" placeholder="Core i5, 8GB RAM, 256GB SSD"><%= entry.description || '' %></textarea>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>চাহিদাকৃত পরিমাণ</label>
+        <input type="number" step="0.01" name="req_qty" value="<%= entry.req_qty || 0 %>">
+      </div>
+      <div class="field">
+        <label>একক</label>
+        <input type="text" name="unit" value="<%= entry.unit || '' %>" placeholder="পিস">
+      </div>
+    </div>
+  </div>
+
+  <div class="slip">
+    <div class="slip-title"><b>গেট পাস স্লিপ</b> — যা এসেছে</div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>গেট পাস নং</label>
+        <input type="text" name="gatepass_no" class="mono" value="<%= entry.gatepass_no || '' %>" placeholder="GP-1123">
+      </div>
+      <div class="field">
+        <label>গেট পাসের তারিখ</label>
+        <input type="date" name="gatepass_date" value="<%= entry.gatepass_date ? entry.gatepass_date.toISOString().slice(0,10) : '' %>">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>গেট পাসে উল্লেখিত আইটেমের নাম</label>
+      <input type="text" name="gatepass_item_name" value="<%= entry.gatepass_item_name || '' %>" placeholder="ল্যাপটপ - Dell Latitude 5420">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>প্রাপ্ত পরিমাণ</label>
+        <input type="number" step="0.01" name="received_qty" value="<%= entry.received_qty || 0 %>">
+      </div>
+      <div class="field">
+        <label>গ্রহণের তারিখ</label>
+        <input type="date" name="received_date" value="<%= entry.received_date ? entry.received_date.toISOString().slice(0,10) : '' %>">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>প্রেরণকারী (হেড অফিস)</label>
+      <input type="text" name="sender_name" value="<%= entry.sender_name || '' %>" placeholder="মিস্টার সাহীর">
+    </div>
+  </div>
+
+  <button class="btn full" type="submit"><%= editing ? 'আপডেট করুন' : 'সংরক্ষণ করুন' %></button>
+</form>
+
+<%- include('partials/footer') %>

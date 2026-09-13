@@ -1,0 +1,26 @@
+<%- include('partials/header', { pageTitle: 'লগইন', user: null }) %>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1>লগইন করুন</h1>
+    <div class="sub">আইটি রিকুইজিশন ট্র্যাকারে স্বাগতম</div>
+
+    <% if (error) { %><div class="error-box"><%= error %></div><% } %>
+
+    <form method="POST" action="/login">
+      <div class="field">
+        <label>ইমেইল</label>
+        <input type="email" name="email" value="<%= email %>" required autofocus>
+      </div>
+      <div class="field">
+        <label>পাসওয়ার্ড</label>
+        <input type="password" name="password" required>
+      </div>
+      <button class="btn full" type="submit">লগইন</button>
+    </form>
+
+    <div class="auth-switch">অ্যাকাউন্ট নেই? <a href="/register">নতুন অ্যাকাউন্ট খুলুন</a></div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,52 @@
+<%- include('partials/header', { pageTitle: 'সব এন্ট্রি', user: user }) %>
+
+<div class="entry-top" style="margin-bottom:16px;">
+  <h2>সব এন্ট্রি</h2>
+  <a class="btn small" href="/entries/new">+ নতুন এন্ট্রি</a>
+</div>
+
+<% const labels = { matched: 'মিলেছে', mismatched: 'মিলেনি', partial: 'আংশিক', pending: 'অপেক্ষমান' }; %>
+
+<% if (entries.length === 0) { %>
+  <div class="empty-state">
+    এখনো কোনো এন্ট্রি নেই।<br>
+    <a class="btn small" style="margin-top:12px;" href="/entries/new">প্রথম এন্ট্রি যোগ করুন</a>
+  </div>
+<% } %>
+
+<% entries.forEach(function(e) { %>
+  <div class="entry-card <%= e.status %>">
+    <div class="entry-top">
+      <div class="entry-name"><%= e.item_name %></div>
+      <span class="stamp <%= e.status %>"><%= labels[e.status] || e.status %></span>
+    </div>
+    <div class="entry-meta">
+      <% if (e.req_no) { %><span>রিকুইজিশন: <span class="mono"><%= e.req_no %></span></span><% } %>
+      <% if (e.gatepass_no) { %><span>গেট পাস: <span class="mono"><%= e.gatepass_no %></span></span><% } %>
+      <span>চাহিদা: <span class="mono"><%= e.req_qty %></span> <%= e.unit || '' %></span>
+      <span>প্রাপ্ত: <span class="mono"><%= e.received_qty %></span></span>
+      <% if (e.creator_name) { %><span><%= e.creator_name %></span><% } %>
+    </div>
+
+    <form class="status-select-form" method="POST" action="/entries/<%= e.id %>/status">
+      <select name="manual_status">
+        <option value="auto" <%= !e.manual_status ? 'selected' : '' %>>অটো (<%= labels[e.auto_status] %>)</option>
+        <option value="matched" <%= e.manual_status === 'matched' ? 'selected' : '' %>>মিলেছে</option>
+        <option value="mismatched" <%= e.manual_status === 'mismatched' ? 'selected' : '' %>>মিলেনি</option>
+        <option value="partial" <%= e.manual_status === 'partial' ? 'selected' : '' %>>আংশিক</option>
+        <option value="pending" <%= e.manual_status === 'pending' ? 'selected' : '' %>>অপেক্ষমান</option>
+      </select>
+      <input type="text" name="status_note" placeholder="নোট (ঐচ্ছিক)" value="<%= e.status_note || '' %>">
+      <button class="btn small secondary" type="submit">সংরক্ষণ</button>
+    </form>
+
+    <div class="entry-links">
+      <a href="/entries/<%= e.id %>/edit">এডিট</a>
+      <form method="POST" action="/entries/<%= e.id %>/delete" onsubmit="return confirm('এই এন্ট্রি মুছে ফেলতে চান?');">
+        <button type="submit">মুছুন</button>
+      </form>
+    </div>
+  </div>
+<% }); %>
+
+<%- include('partials/footer') %>
