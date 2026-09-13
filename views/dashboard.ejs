@@ -1,45 +1,56 @@
 <%- include('partials/header', { pageTitle: 'সারসংক্ষেপ', user: user }) %>
 
-<h2>সারসংক্ষেপ লেজার</h2>
-<p style="color:#5c5a52; font-size:14px; margin:6px 0 20px;">মোট <b class="mono"><%= total %></b>টি এন্ট্রির অবস্থা</p>
+<button class="btn print-btn full" onclick="window.print()" type="button">🖨️ পূর্ণ রিপোর্ট প্রিন্ট / প্রিভিউ করুন</button>
 
-<div class="tally">
-  <div class="tally-cell matched">
-    <div class="tally-num"><%= stats.matched %></div>
-    <div class="tally-label">মিলেছে</div>
+<div class="hero-card">
+  <div class="progress-ring" style="--pct: <%= matchRate %>;">
+    <div class="progress-ring-inner">
+      <div class="progress-ring-num"><%= matchRate %>%</div>
+      <div class="progress-ring-label">মিলেছে</div>
+    </div>
   </div>
-  <div class="tally-cell mismatched">
-    <div class="tally-num"><%= stats.mismatched %></div>
-    <div class="tally-label">মিলেনি</div>
-  </div>
-  <div class="tally-cell partial">
-    <div class="tally-num"><%= stats.partial %></div>
-    <div class="tally-label">আংশিক</div>
-  </div>
-  <div class="tally-cell pending">
-    <div class="tally-num"><%= stats.pending %></div>
-    <div class="tally-label">অপেক্ষমান</div>
+  <div class="hero-text">
+    <div class="hero-title">মোট <%= total %>টি এন্ট্রি</div>
+    <div class="hero-desc">সঠিকভাবে যাচাইকৃত রিকুইজিশনের হার এখানে দেখা যাচ্ছে</div>
   </div>
 </div>
 
-<div class="rate-block">
-  <div class="rate-top">
-    <div class="rate-num"><%= matchRate %>%</div>
-    <div class="rate-desc">সঠিকভাবে মিলে যাওয়া রিকুইজিশনের হার</div>
+<div class="stat-grid">
+  <div class="stat-tile stat-green">
+    <div class="stat-icon">✅</div>
+    <div class="stat-num"><%= stats.matched %></div>
+    <div class="stat-label">মিলেছে</div>
   </div>
-  <div class="rate-track">
-    <div class="rate-fill" style="width: <%= matchRate %>%;"></div>
+  <div class="stat-tile stat-red">
+    <div class="stat-icon">❌</div>
+    <div class="stat-num"><%= stats.mismatched %></div>
+    <div class="stat-label">মিলেনি</div>
   </div>
-  <div class="totals-row">
-    <span>মোট চাহিদা: <b class="mono"><%= totalReq %></b></span>
-    <span>মোট প্রাপ্ত: <b class="mono"><%= totalRecv %></b></span>
-    <span>পার্থক্য: <b class="mono"><%= diff %></b></span>
+  <div class="stat-tile stat-amber">
+    <div class="stat-icon">⚠️</div>
+    <div class="stat-num"><%= stats.partial %></div>
+    <div class="stat-label">আংশিক মিলেছে</div>
+  </div>
+  <div class="stat-tile stat-grey">
+    <div class="stat-icon">⏳</div>
+    <div class="stat-num"><%= stats.pending %></div>
+    <div class="stat-label">অপেক্ষমান</div>
   </div>
 </div>
 
-<div class="actions-row">
-  <a class="btn" href="/entries/new">+ নতুন এন্ট্রি</a>
-  <a class="btn secondary" href="/entries">সব এন্ট্রি দেখুন</a>
+<div class="totals-card">
+  <div class="totals-item">
+    <div class="totals-num mono"><%= totalReq %></div>
+    <div class="totals-label">মোট চাহিদা</div>
+  </div>
+  <div class="totals-item">
+    <div class="totals-num mono"><%= totalRecv %></div>
+    <div class="totals-label">মোট প্রাপ্ত</div>
+  </div>
+  <div class="totals-item">
+    <div class="totals-num mono"><%= diff %></div>
+    <div class="totals-label">পার্থক্য</div>
+  </div>
 </div>
 
 <%- include('partials/footer') %>

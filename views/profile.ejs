@@ -1,0 +1,25 @@
+<%- include('partials/header', { pageTitle: 'প্রোফাইল', user: user, activeNav: activeNav }) %>
+
+<h2>প্রোফাইল</h2>
+<p style="color:var(--graphite-soft); font-size:14px; margin:6px 0 20px;">আপনার অ্যাকাউন্টের তথ্য</p>
+
+<div class="slip">
+  <div class="profile-row">
+    <span class="profile-label">নাম</span>
+    <span class="profile-value"><%= user.name %></span>
+  </div>
+  <div class="profile-row">
+    <span class="profile-label">ইমেইল</span>
+    <span class="profile-value"><%= user.email %></span>
+  </div>
+  <div class="profile-row">
+    <span class="profile-label">ভূমিকা</span>
+    <span class="profile-value"><%= user.role || 'staff' %></span>
+  </div>
+</div>
+
+<form action="/logout" method="POST">
+  <button class="btn full danger" type="submit">লগআউট</button>
+</form>
+
+<%- include('partials/footer') %>
