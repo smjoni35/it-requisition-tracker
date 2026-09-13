@@ -36,6 +36,31 @@ CREATE TABLE IF NOT EXISTS it_entries (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Proof-of-delivery image for the gate pass, stored directly in the DB as
+-- base64 text so the app doesn't need persistent disk / external storage.
+ALTER TABLE it_entries ADD COLUMN IF NOT EXISTS image_data TEXT;
+ALTER TABLE it_entries ADD COLUMN IF NOT EXISTS image_mime TEXT;
+ALTER TABLE it_entries ADD COLUMN IF NOT EXISTS image_filename TEXT;
+
+-- History of who changed what on an entry (create/update/status-change/delete).
+-- entry_id is nullable + SET NULL on delete so the log survives entry deletion;
+-- item_name/req_no are copied in at write time so history stays readable.
+CREATE TABLE IF NOT EXISTS it_activity_log (
+  id SERIAL PRIMARY KEY,
+  entry_id INTEGER REFERENCES it_entries(id) ON DELETE SET NULL,
+  user_id INTEGER REFERENCES it_users(id) ON DELETE SET NULL,
+  user_name TEXT,
+  action TEXT NOT NULL,
+  item_name TEXT,
+  req_no TEXT,
+  from_status TEXT,
+  to_status TEXT,
+  note TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_it_activity_log_created_at ON it_activity_log (created_at DESC);
+
 -- Session store table (created here instead of by connect-pg-simple).
 -- connect-pg-simple always names the primary-key constraint "session_pkey"
 -- no matter what tableName you give it, so if another app/table on this
