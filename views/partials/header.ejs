@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'আইটি রিকুইজিশন ট্র্যাকার' %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Noto+Sans+Bengali:wght@400;500;600&family=Noto+Serif+Bengali:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% if (typeof user !== 'undefined' && user) { %>
+<header class="top-bar">
+  <div class="top-bar-row">
+    <div>
+      <div class="brand-title">আইটি রিকুইজিশন ট্র্যাকার</div>
+      <div class="brand-sub">রিকুইজিশন ও গেট পাস মিলকরণ</div>
+    </div>
+    <div class="top-bar-user">
+      <%= user.name %>
+      <form action="/logout" method="POST"><button type="submit">লগআউট</button></form>
+    </div>
+  </div>
+</header>
+<% } %>
+<div class="page">
