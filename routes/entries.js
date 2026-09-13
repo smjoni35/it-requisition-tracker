@@ -29,6 +29,7 @@ router.get('/', requireLogin, async (req, res) => {
 
   res.render('dashboard', {
     user: req.session.user,
+    activeNav: 'dashboard',
     stats,
     total,
     matchRate,
@@ -45,11 +46,11 @@ router.get('/entries', requireLogin, async (req, res) => {
      ORDER BY it_entries.created_at DESC`
   );
   const entries = result.rows.map((e) => ({ ...e, status: effectiveStatus(e) }));
-  res.render('entries', { user: req.session.user, entries });
+  res.render('entries', { user: req.session.user, activeNav: 'entries', entries });
 });
 
 router.get('/entries/new', requireLogin, (req, res) => {
-  res.render('new-entry', { user: req.session.user, entry: {}, error: null, editing: false });
+  res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: {}, error: null, editing: false });
 });
 
 router.post('/entries/new', requireLogin, async (req, res) => {
@@ -88,14 +89,14 @@ router.post('/entries/new', requireLogin, async (req, res) => {
     res.redirect('/entries');
   } catch (err) {
     console.error(err);
-    res.render('new-entry', { user: req.session.user, entry: b, error: 'সেভ করা যায়নি, আবার চেষ্টা করুন।', editing: false });
+    res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: b, error: 'সেভ করা যায়নি, আবার চেষ্টা করুন।', editing: false });
   }
 });
 
 router.get('/entries/:id/edit', requireLogin, async (req, res) => {
   const result = await pool.query('SELECT * FROM it_entries WHERE id = $1', [req.params.id]);
   if (result.rows.length === 0) return res.redirect('/entries');
-  res.render('new-entry', { user: req.session.user, entry: result.rows[0], error: null, editing: true });
+  res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: result.rows[0], error: null, editing: true });
 });
 
 router.post('/entries/:id/edit', requireLogin, async (req, res) => {
@@ -124,7 +125,7 @@ router.post('/entries/:id/edit', requireLogin, async (req, res) => {
     res.redirect('/entries');
   } catch (err) {
     console.error(err);
-    res.render('new-entry', { user: req.session.user, entry: { ...b, id: req.params.id }, error: 'আপডেট করা যায়নি।', editing: true });
+    res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: { ...b, id: req.params.id }, error: 'আপডেট করা যায়নি।', editing: true });
   }
 });
 
@@ -141,6 +142,10 @@ router.post('/entries/:id/status', requireLogin, async (req, res) => {
 router.post('/entries/:id/delete', requireLogin, async (req, res) => {
   await pool.query('DELETE FROM it_entries WHERE id = $1', [req.params.id]);
   res.redirect('/entries');
+});
+
+router.get('/profile', requireLogin, (req, res) => {
+  res.render('profile', { user: req.session.user, activeNav: 'profile' });
 });
 
 module.exports = router;
