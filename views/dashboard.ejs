@@ -3,36 +3,36 @@
 <button class="btn print-btn full" onclick="window.print()" type="button">🖨️ পূর্ণ রিপোর্ট প্রিন্ট / প্রিভিউ করুন</button>
 
 <div class="hero-card">
+  <div class="hero-text">
+    <div class="hero-eyebrow">মোট <%= total %>টি এন্ট্রি</div>
+    <div class="hero-title">মিলে যাওয়ার হার</div>
+    <div class="hero-desc">সঠিকভাবে যাচাইকৃত রিকুইজিশনের হার এখানে দেখা যাচ্ছে</div>
+  </div>
   <div class="progress-ring" style="--pct: <%= matchRate %>;">
     <div class="progress-ring-inner">
       <div class="progress-ring-num"><%= matchRate %>%</div>
-      <div class="progress-ring-label">মিলেছে</div>
     </div>
-  </div>
-  <div class="hero-text">
-    <div class="hero-title">মোট <%= total %>টি এন্ট্রি</div>
-    <div class="hero-desc">সঠিকভাবে যাচাইকৃত রিকুইজিশনের হার এখানে দেখা যাচ্ছে</div>
   </div>
 </div>
 
 <div class="stat-grid">
-  <div class="stat-tile stat-green">
-    <div class="stat-icon">✅</div>
+  <div class="stat-tile">
+    <div class="stat-icon-badge badge-green">✓</div>
     <div class="stat-num"><%= stats.matched %></div>
     <div class="stat-label">মিলেছে</div>
   </div>
-  <div class="stat-tile stat-red">
-    <div class="stat-icon">❌</div>
+  <div class="stat-tile">
+    <div class="stat-icon-badge badge-red">✕</div>
     <div class="stat-num"><%= stats.mismatched %></div>
     <div class="stat-label">মিলেনি</div>
   </div>
-  <div class="stat-tile stat-amber">
-    <div class="stat-icon">⚠️</div>
+  <div class="stat-tile">
+    <div class="stat-icon-badge badge-amber">!</div>
     <div class="stat-num"><%= stats.partial %></div>
     <div class="stat-label">আংশিক মিলেছে</div>
   </div>
-  <div class="stat-tile stat-grey">
-    <div class="stat-icon">⏳</div>
+  <div class="stat-tile">
+    <div class="stat-icon-badge badge-grey">…</div>
     <div class="stat-num"><%= stats.pending %></div>
     <div class="stat-label">অপেক্ষমান</div>
   </div>
