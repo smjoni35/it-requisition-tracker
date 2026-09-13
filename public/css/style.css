@@ -341,6 +341,11 @@ a { color: inherit; }
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(91,63,242,0.15);
 }
+.field textarea {
+  resize: vertical;
+  max-width: 100%;
+  min-height: 60px;
+}
 .field-row { display: flex; gap: 12px; }
 .field-row .field { flex: 1; }
 
