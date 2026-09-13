@@ -36,3 +36,27 @@ CREATE TABLE IF NOT EXISTS it_entries (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Session store table (created here instead of by connect-pg-simple).
+-- connect-pg-simple always names the primary-key constraint "session_pkey"
+-- no matter what tableName you give it, so if another app/table on this
+-- same database already has a constraint called "session_pkey", every
+-- deploy fails with: error: relation "session_pkey" already exists.
+-- Creating the table ourselves with a uniquely-named constraint avoids that.
+CREATE TABLE IF NOT EXISTS it_session (
+  sid varchar NOT NULL COLLATE "default",
+  sess json NOT NULL,
+  expire timestamp(6) NOT NULL
+) WITH (OIDS=FALSE);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'it_session_pkey'
+  ) THEN
+    ALTER TABLE it_session
+      ADD CONSTRAINT it_session_pkey PRIMARY KEY (sid) NOT DEFERRABLE INITIALLY IMMEDIATE;
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS "IDX_it_session_expire" ON it_session (expire);
+
