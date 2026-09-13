@@ -1,0 +1,10 @@
+<%- include('partials/header', { pageTitle: 'অনুমতি নেই', user: user, activeNav: activeNav }) %>
+
+<div class="empty-state">
+  🚫<br><br>
+  <%= message %>
+  <br><br>
+  <a class="btn small" href="/entries">তালিকায় ফিরুন</a>
+</div>
+
+<%- include('partials/footer') %>

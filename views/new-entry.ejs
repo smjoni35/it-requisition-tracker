@@ -1,11 +1,17 @@
 <%- include('partials/header', { pageTitle: editing ? 'এন্ট্রি এডিট' : 'নতুন এন্ট্রি', user: user }) %>
 
+<% function fmtDate(v) {
+  if (!v) return '';
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  return String(v).slice(0, 10);
+} %>
+
 <h2><%= editing ? 'এন্ট্রি এডিট করুন' : 'নতুন এন্ট্রি' %></h2>
 <p style="color:#5c5a52; font-size:14px; margin:6px 0 20px;">রিকুইজিশন স্লিপ ও গেট পাস স্লিপ — দুই পাশের তথ্য পূরণ করুন</p>
 
 <% if (error) { %><div class="error-box"><%= error %></div><% } %>
 
-<form method="POST" action="<%= editing ? '/entries/' + entry.id + '/edit' : '/entries/new' %>">
+<form method="POST" action="<%= editing ? '/entries/' + entry.id + '/edit' : '/entries/new' %>" enctype="multipart/form-data">
 
   <div class="slip">
     <div class="slip-title"><b>রিকুইজিশন স্লিপ</b> — যা চাওয়া হয়েছিল</div>
@@ -22,7 +28,7 @@
       </div>
       <div class="field">
         <label>রিকুইজিশনের তারিখ</label>
-        <input type="date" name="req_date" value="<%= entry.req_date ? entry.req_date.toISOString().slice(0,10) : '' %>">
+        <input type="date" name="req_date" value="<%= fmtDate(entry.req_date) %>">
       </div>
     </div>
 
@@ -53,7 +59,7 @@
       </div>
       <div class="field">
         <label>গেট পাসের তারিখ</label>
-        <input type="date" name="gatepass_date" value="<%= entry.gatepass_date ? entry.gatepass_date.toISOString().slice(0,10) : '' %>">
+        <input type="date" name="gatepass_date" value="<%= fmtDate(entry.gatepass_date) %>">
       </div>
     </div>
 
@@ -69,13 +75,24 @@
       </div>
       <div class="field">
         <label>গ্রহণের তারিখ</label>
-        <input type="date" name="received_date" value="<%= entry.received_date ? entry.received_date.toISOString().slice(0,10) : '' %>">
+        <input type="date" name="received_date" value="<%= fmtDate(entry.received_date) %>">
       </div>
     </div>
 
     <div class="field">
       <label>প্রেরণকারী (হেড অফিস)</label>
       <input type="text" name="sender_name" value="<%= entry.sender_name || '' %>" placeholder="মিস্টার সাহীর">
+    </div>
+
+    <div class="field">
+      <label>গেট পাসের ছবি / প্রমাণ (ঐচ্ছিক, সর্বোচ্চ ২MB)</label>
+      <% if (editing && entry.image_data) { %>
+        <div class="current-image-preview">
+          <img src="/entries/<%= entry.id %>/image" alt="বর্তমান ছবি">
+          <label class="remove-image-check"><input type="checkbox" name="remove_image"> এই ছবিটি মুছে ফেলুন</label>
+        </div>
+      <% } %>
+      <input type="file" name="image" accept="image/*">
     </div>
   </div>
 

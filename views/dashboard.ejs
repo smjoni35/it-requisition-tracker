@@ -1,6 +1,6 @@
 <%- include('partials/header', { pageTitle: 'সারসংক্ষেপ', user: user }) %>
 
-<button class="btn print-btn full" onclick="window.print()" type="button">🖨️ পূর্ণ রিপোর্ট প্রিন্ট / প্রিভিউ করুন</button>
+<a class="btn print-btn full" href="/entries/print">🖨️ পূর্ণ রিপোর্ট প্রিন্ট / PDF সেভ করুন</a>
 
 <div class="hero-card">
   <div class="hero-text">
@@ -52,5 +52,53 @@
     <div class="totals-label">পার্থক্য</div>
   </div>
 </div>
+
+<div class="slip">
+  <div class="slip-title"><b>গত ১৪ দিনের ট্রেন্ড</b></div>
+  <canvas id="trendChart" height="180"></canvas>
+</div>
+
+<div class="toolbar-row">
+  <a class="toolbar-link" href="/activity">📜 অ্যাক্টিভিটি লগ</a>
+  <a class="toolbar-link" href="/entries/import">⬆️ CSV ইম্পোর্ট</a>
+  <a class="toolbar-link" href="/entries/export/excel">📊 এক্সেল এক্সপোর্ট</a>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+  const trend = <%- JSON.stringify(trend) %>;
+  const ctx = document.getElementById('trendChart');
+  if (ctx && trend.length) {
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: trend.map(function (r) { return r.day.slice(5); }),
+        datasets: [
+          {
+            label: 'মোট এন্ট্রি',
+            data: trend.map(function (r) { return r.total; }),
+            borderColor: '#5b3ff2',
+            backgroundColor: 'rgba(91,63,242,0.12)',
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: 'মিলেছে',
+            data: trend.map(function (r) { return r.matched; }),
+            borderColor: '#16915f',
+            backgroundColor: 'rgba(22,145,95,0.12)',
+            tension: 0.3,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+  }
+</script>
 
 <%- include('partials/footer') %>

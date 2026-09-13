@@ -1,0 +1,57 @@
+<%- include('partials/header', { pageTitle: 'প্রিন্ট রিপোর্ট', user: user }) %>
+
+<div class="actions-row">
+  <a class="btn small secondary" href="/entries">← তালিকায় ফিরুন</a>
+</div>
+
+<button class="btn print-btn full" onclick="window.print()" type="button">🖨️ প্রিন্ট করুন / PDF হিসেবে সেভ করুন</button>
+<p style="color:var(--graphite-soft); font-size:12.5px; margin:8px 0 20px;">
+  PDF বানাতে চাইলে প্রিন্ট ডায়ালগে "Save as PDF" বেছে নিন — বাংলা লেখা ঠিকভাবেই আসবে।
+</p>
+
+<h2>রিকুইজিশন ও গেট পাস রিপোর্ট</h2>
+<p style="color:var(--graphite-soft); font-size:13px; margin:4px 0 16px;">
+  তৈরি হয়েছে: <%= generatedAt.toISOString().slice(0,16).replace('T', ' ') %>
+  <% if (q) { %> • খোঁজ: "<%= q %>"<% } %>
+  <% if (status !== 'all') { %> • স্ট্যাটাস: <%= labels[status] || status %><% } %>
+</p>
+
+<div class="report-summary">
+  <div>মোট: <b><%= total %></b></div>
+  <div>মিলেছে: <b><%= stats.matched %></b></div>
+  <div>মিলেনি: <b><%= stats.mismatched %></b></div>
+  <div>আংশিক: <b><%= stats.partial %></b></div>
+  <div>অপেক্ষমান: <b><%= stats.pending %></b></div>
+</div>
+
+<table class="report-table">
+  <thead>
+    <tr>
+      <th>আইটেম</th>
+      <th>রিকুইজিশন নং</th>
+      <th>চাহিদা</th>
+      <th>গেট পাস নং</th>
+      <th>প্রাপ্ত</th>
+      <th>প্রেরণকারী</th>
+      <th>স্ট্যাটাস</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% entries.forEach(function(e) { %>
+      <tr>
+        <td><%= e.item_name %></td>
+        <td><%= e.req_no || '-' %></td>
+        <td><%= e.req_qty %> <%= e.unit || '' %></td>
+        <td><%= e.gatepass_no || '-' %></td>
+        <td><%= e.received_qty %></td>
+        <td><%= e.sender_name || '-' %></td>
+        <td><%= labels[e.status] || e.status %></td>
+      </tr>
+    <% }); %>
+    <% if (entries.length === 0) { %>
+      <tr><td colspan="7">কোনো এন্ট্রি পাওয়া যায়নি।</td></tr>
+    <% } %>
+  </tbody>
+</table>
+
+<%- include('partials/footer') %>

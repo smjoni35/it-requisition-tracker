@@ -1,0 +1,47 @@
+<%- include('partials/header', { pageTitle: 'অ্যাক্টিভিটি লগ', user: user, activeNav: activeNav }) %>
+
+<div class="actions-row">
+  <a class="btn small secondary" href="/entries">← তালিকায় ফিরুন</a>
+</div>
+
+<h2>অ্যাক্টিভিটি লগ</h2>
+<p style="color:var(--graphite-soft); font-size:14px; margin:6px 0 20px;">কে কখন কী পরিবর্তন করেছেন তার ইতিহাস</p>
+
+<% const actionLabels = {
+  created: 'নতুন এন্ট্রি যোগ করেছেন',
+  updated: 'এন্ট্রি আপডেট করেছেন',
+  status_changed: 'স্ট্যাটাস পরিবর্তন করেছেন',
+  deleted: 'এন্ট্রি মুছে ফেলেছেন',
+  imported: 'CSV থেকে ইম্পোর্ট করেছেন'
+}; %>
+
+<% if (logs.length === 0) { %>
+  <div class="empty-state">এখনো কোনো অ্যাক্টিভিটি রেকর্ড নেই।</div>
+<% } %>
+
+<% logs.forEach(function(l) { %>
+  <div class="log-row">
+    <div><b><%= l.user_name || 'অজানা ব্যবহারকারী' %></b> — <%= actionLabels[l.action] || l.action %></div>
+    <div><%= l.item_name || '' %> <% if (l.req_no) { %>(<%= l.req_no %>)<% } %></div>
+    <% if (l.action === 'status_changed') { %>
+      <div><%= labels[l.from_status] || l.from_status || '-' %> → <%= labels[l.to_status] || l.to_status || '-' %>
+        <% if (l.note) { %> • নোট: <%= l.note %><% } %>
+      </div>
+    <% } %>
+    <div class="log-when"><%= new Date(l.created_at).toISOString().slice(0,16).replace('T',' ') %></div>
+  </div>
+<% }); %>
+
+<% if (totalPages > 1) { %>
+  <div class="pagination">
+    <% if (currentPage > 1) { %>
+      <a class="btn small secondary" href="/activity?page=<%= currentPage - 1 %>">← আগের</a>
+    <% } %>
+    <span class="pagination-info"><%= currentPage %> / <%= totalPages %></span>
+    <% if (currentPage < totalPages) { %>
+      <a class="btn small secondary" href="/activity?page=<%= currentPage + 1 %>">পরের →</a>
+    <% } %>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

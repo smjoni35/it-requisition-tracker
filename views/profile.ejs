@@ -3,11 +3,10 @@
 <h2>প্রোফাইল</h2>
 <p style="color:var(--graphite-soft); font-size:14px; margin:6px 0 20px;">আপনার অ্যাকাউন্টের তথ্য</p>
 
+<% if (typeof error !== 'undefined' && error) { %><div class="error-box"><%= error %></div><% } %>
+<% if (typeof success !== 'undefined' && success) { %><div class="success-box"><%= success %></div><% } %>
+
 <div class="slip">
-  <div class="profile-row">
-    <span class="profile-label">নাম</span>
-    <span class="profile-value"><%= user.name %></span>
-  </div>
   <div class="profile-row">
     <span class="profile-label">ইমেইল</span>
     <span class="profile-value"><%= user.email %></span>
@@ -16,6 +15,36 @@
     <span class="profile-label">ভূমিকা</span>
     <span class="profile-value"><%= user.role || 'staff' %></span>
   </div>
+</div>
+
+<div class="slip">
+  <div class="slip-title"><b>নাম পরিবর্তন</b></div>
+  <form method="POST" action="/profile">
+    <div class="field">
+      <label>নাম</label>
+      <input type="text" name="name" value="<%= user.name %>" required>
+    </div>
+    <button class="btn full secondary" type="submit">নাম আপডেট করুন</button>
+  </form>
+</div>
+
+<div class="slip">
+  <div class="slip-title"><b>পাসওয়ার্ড পরিবর্তন</b></div>
+  <form method="POST" action="/profile/password">
+    <div class="field">
+      <label>বর্তমান পাসওয়ার্ড</label>
+      <input type="password" name="current_password" required>
+    </div>
+    <div class="field">
+      <label>নতুন পাসওয়ার্ড</label>
+      <input type="password" name="new_password" required minlength="6">
+    </div>
+    <div class="field">
+      <label>নতুন পাসওয়ার্ড আবার লিখুন</label>
+      <input type="password" name="confirm_password" required minlength="6">
+    </div>
+    <button class="btn full secondary" type="submit">পাসওয়ার্ড পরিবর্তন করুন</button>
+  </form>
 </div>
 
 <form action="/logout" method="POST">

@@ -5,11 +5,32 @@
   <a class="btn small" href="/entries/new">+ নতুন এন্ট্রি</a>
 </div>
 
+<form method="GET" action="/entries" class="filter-bar">
+  <input type="text" name="q" value="<%= q %>" placeholder="আইটেম, রিকুইজিশন নং বা গেট পাস নং দিয়ে খুঁজুন">
+  <select name="status">
+    <option value="all" <%= status === 'all' ? 'selected' : '' %>>সব স্ট্যাটাস</option>
+    <option value="matched" <%= status === 'matched' ? 'selected' : '' %>>মিলেছে</option>
+    <option value="mismatched" <%= status === 'mismatched' ? 'selected' : '' %>>মিলেনি</option>
+    <option value="partial" <%= status === 'partial' ? 'selected' : '' %>>আংশিক</option>
+    <option value="pending" <%= status === 'pending' ? 'selected' : '' %>>অপেক্ষমান</option>
+  </select>
+  <button class="btn small secondary" type="submit">খুঁজুন</button>
+</form>
+
+<div class="toolbar-row">
+  <a class="toolbar-link" href="/entries/print?q=<%= encodeURIComponent(q) %>&status=<%= status %>">📄 প্রিন্ট রিপোর্ট</a>
+  <a class="toolbar-link" href="/entries/export/excel?q=<%= encodeURIComponent(q) %>&status=<%= status %>">📊 এক্সেল এক্সপোর্ট</a>
+  <a class="toolbar-link" href="/entries/import">⬆️ CSV ইম্পোর্ট</a>
+  <a class="toolbar-link" href="/activity">📜 অ্যাক্টিভিটি লগ</a>
+</div>
+
+<div style="color:var(--graphite-soft); font-size:13px; margin:4px 0 14px;">মোট <%= totalCount %>টি এন্ট্রি পাওয়া গেছে</div>
+
 <% const labels = { matched: 'মিলেছে', mismatched: 'মিলেনি', partial: 'আংশিক', pending: 'অপেক্ষমান' }; %>
 
 <% if (entries.length === 0) { %>
   <div class="empty-state">
-    এখনো কোনো এন্ট্রি নেই।<br>
+    কোনো এন্ট্রি পাওয়া যায়নি।<br>
     <a class="btn small" style="margin-top:12px;" href="/entries/new">প্রথম এন্ট্রি যোগ করুন</a>
   </div>
 <% } %>
@@ -28,6 +49,12 @@
       <% if (e.creator_name) { %><span><%= e.creator_name %></span><% } %>
     </div>
 
+    <% if (e.image_data) { %>
+      <a href="/entries/<%= e.id %>/image" target="_blank" class="entry-thumb-link">
+        <img class="entry-thumb" src="/entries/<%= e.id %>/image" alt="গেট পাসের ছবি">
+      </a>
+    <% } %>
+
     <form class="status-select-form" method="POST" action="/entries/<%= e.id %>/status">
       <select name="manual_status">
         <option value="auto" <%= !e.manual_status ? 'selected' : '' %>>অটো (<%= labels[e.auto_status] %>)</option>
@@ -42,11 +69,25 @@
 
     <div class="entry-links">
       <a href="/entries/<%= e.id %>/edit">এডিট</a>
-      <form method="POST" action="/entries/<%= e.id %>/delete" onsubmit="return confirm('এই এন্ট্রি মুছে ফেলতে চান?');">
-        <button type="submit">মুছুন</button>
-      </form>
+      <% if (user.role === 'admin') { %>
+        <form method="POST" action="/entries/<%= e.id %>/delete" onsubmit="return confirm('এই এন্ট্রি মুছে ফেলতে চান?');">
+          <button type="submit">মুছুন</button>
+        </form>
+      <% } %>
     </div>
   </div>
 <% }); %>
+
+<% if (totalPages > 1) { %>
+  <div class="pagination">
+    <% if (currentPage > 1) { %>
+      <a class="btn small secondary" href="/entries?page=<%= currentPage - 1 %>&q=<%= encodeURIComponent(q) %>&status=<%= status %>">← আগের</a>
+    <% } %>
+    <span class="pagination-info"><%= currentPage %> / <%= totalPages %></span>
+    <% if (currentPage < totalPages) { %>
+      <a class="btn small secondary" href="/entries?page=<%= currentPage + 1 %>&q=<%= encodeURIComponent(q) %>&status=<%= status %>">পরের →</a>
+    <% } %>
+  </div>
+<% } %>
 
 <%- include('partials/footer') %>

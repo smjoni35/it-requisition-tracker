@@ -1,0 +1,36 @@
+<%- include('partials/header', { pageTitle: 'CSV ইম্পোর্ট', user: user, activeNav: activeNav }) %>
+
+<div class="actions-row">
+  <a class="btn small secondary" href="/entries">← তালিকায় ফিরুন</a>
+</div>
+
+<h2>CSV বাল্ক ইম্পোর্ট</h2>
+<p style="color:var(--graphite-soft); font-size:14px; margin:6px 0 16px;">একসাথে অনেক এন্ট্রি যোগ করুন</p>
+
+<% if (error) { %><div class="error-box"><%= error %></div><% } %>
+
+<% if (result) { %>
+  <div class="success-box">
+    মোট <%= result.total %>টি সারি পাওয়া গেছে — <%= result.inserted %>টি যোগ হয়েছে<% if (result.failed > 0) { %>, <%= result.failed %>টি বাদ পড়েছে (আইটেমের নাম খালি ছিল বা সেভ করা যায়নি)<% } %>।
+  </div>
+<% } %>
+
+<div class="slip">
+  <div class="slip-title"><b>CSV ফরম্যাট</b></div>
+  <p style="font-size:13.5px; color:var(--graphite-soft); margin-bottom:10px;">
+    প্রথম সারিতে কলামের নাম থাকতে হবে। শুধু <b>item_name</b> আবশ্যক, বাকিগুলো ঐচ্ছিক। তারিখ লিখুন YYYY-MM-DD ফরম্যাটে।
+  </p>
+  <div class="mono" style="font-size:12px; background:#faf9ff; padding:10px; border-radius:8px; overflow-x:auto; white-space:nowrap;">
+    <%= columns.join(',') %>
+  </div>
+</div>
+
+<form method="POST" action="/entries/import" enctype="multipart/form-data" class="slip">
+  <div class="field">
+    <label>CSV ফাইল</label>
+    <input type="file" name="csv_file" accept=".csv,text/csv" required>
+  </div>
+  <button class="btn full" type="submit">ইম্পোর্ট করুন</button>
+</form>
+
+<%- include('partials/footer') %>
