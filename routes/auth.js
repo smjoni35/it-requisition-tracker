@@ -19,17 +19,17 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
+    const existing = await pool.query('SELECT id FROM it_users WHERE email = $1', [email.toLowerCase()]);
     if (existing.rows.length > 0) {
       return res.render('register', { error: 'এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে।', name, email });
     }
 
     const hash = await bcrypt.hash(password, 10);
-    const userCount = await pool.query('SELECT COUNT(*)::int AS c FROM users');
+    const userCount = await pool.query('SELECT COUNT(*)::int AS c FROM it_users');
     const role = userCount.rows[0].c === 0 ? 'admin' : 'staff';
 
     const result = await pool.query(
-      'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
+      'INSERT INTO it_users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
       [name, email.toLowerCase(), hash, role]
     );
 
@@ -48,7 +48,7 @@ router.get('/login', (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [(email || '').toLowerCase()]);
+    const result = await pool.query('SELECT * FROM it_users WHERE email = $1', [(email || '').toLowerCase()]);
     const user = result.rows[0];
 
     if (!user) {

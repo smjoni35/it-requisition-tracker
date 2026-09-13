@@ -10,7 +10,7 @@ function effectiveStatus(entry) {
 }
 
 router.get('/', requireLogin, async (req, res) => {
-  const result = await pool.query('SELECT * FROM entries ORDER BY created_at DESC');
+  const result = await pool.query('SELECT * FROM it_entries ORDER BY created_at DESC');
   const entries = result.rows;
 
   const stats = { matched: 0, mismatched: 0, partial: 0, pending: 0 };
@@ -40,9 +40,9 @@ router.get('/', requireLogin, async (req, res) => {
 
 router.get('/entries', requireLogin, async (req, res) => {
   const result = await pool.query(
-    `SELECT entries.*, users.name AS creator_name
-     FROM entries LEFT JOIN users ON entries.user_id = users.id
-     ORDER BY entries.created_at DESC`
+    `SELECT it_entries.*, it_users.name AS creator_name
+     FROM it_entries LEFT JOIN it_users ON it_entries.user_id = it_users.id
+     ORDER BY it_entries.created_at DESC`
   );
   const entries = result.rows.map((e) => ({ ...e, status: effectiveStatus(e) }));
   res.render('entries', { user: req.session.user, entries });
@@ -63,7 +63,7 @@ router.post('/entries/new', requireLogin, async (req, res) => {
 
   try {
     await pool.query(
-      `INSERT INTO entries
+      `INSERT INTO it_entries
         (user_id, item_name, req_no, req_date, description, req_qty, unit,
          gatepass_no, gatepass_date, gatepass_item_name, received_qty, received_date, sender_name,
          auto_status)
@@ -93,7 +93,7 @@ router.post('/entries/new', requireLogin, async (req, res) => {
 });
 
 router.get('/entries/:id/edit', requireLogin, async (req, res) => {
-  const result = await pool.query('SELECT * FROM entries WHERE id = $1', [req.params.id]);
+  const result = await pool.query('SELECT * FROM it_entries WHERE id = $1', [req.params.id]);
   if (result.rows.length === 0) return res.redirect('/entries');
   res.render('new-entry', { user: req.session.user, entry: result.rows[0], error: null, editing: true });
 });
@@ -109,7 +109,7 @@ router.post('/entries/:id/edit', requireLogin, async (req, res) => {
 
   try {
     await pool.query(
-      `UPDATE entries SET
+      `UPDATE it_entries SET
         item_name=$1, req_no=$2, req_date=$3, description=$4, req_qty=$5, unit=$6,
         gatepass_no=$7, gatepass_date=$8, gatepass_item_name=$9, received_qty=$10,
         received_date=$11, sender_name=$12, auto_status=$13, updated_at=NOW()
@@ -132,14 +132,14 @@ router.post('/entries/:id/status', requireLogin, async (req, res) => {
   const { manual_status, status_note } = req.body;
   const value = manual_status === 'auto' ? null : manual_status;
   await pool.query(
-    'UPDATE entries SET manual_status = $1, status_note = $2, updated_at = NOW() WHERE id = $3',
+    'UPDATE it_entries SET manual_status = $1, status_note = $2, updated_at = NOW() WHERE id = $3',
     [value, status_note || null, req.params.id]
   );
   res.redirect('/entries');
 });
 
 router.post('/entries/:id/delete', requireLogin, async (req, res) => {
-  await pool.query('DELETE FROM entries WHERE id = $1', [req.params.id]);
+  await pool.query('DELETE FROM it_entries WHERE id = $1', [req.params.id]);
   res.redirect('/entries');
 });
 
