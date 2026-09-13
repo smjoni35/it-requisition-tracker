@@ -1,3 +1,19 @@
 </div>
+<% if (typeof user !== 'undefined' && user) { %>
+<nav class="bottom-nav">
+  <a href="/entries" class="<%= typeof activeNav !== 'undefined' && activeNav === 'entries' ? 'active' : '' %>">
+    <span class="bn-icon">📋</span><span>তালিকা</span>
+  </a>
+  <a href="/entries/new" class="<%= typeof activeNav !== 'undefined' && activeNav === 'new' ? 'active' : '' %>">
+    <span class="bn-icon">➕</span><span>নতুন এন্ট্রি</span>
+  </a>
+  <a href="/" class="<%= typeof activeNav !== 'undefined' && activeNav === 'dashboard' ? 'active' : '' %>">
+    <span class="bn-icon">📊</span><span>সারসংক্ষেপ</span>
+  </a>
+  <a href="/profile" class="<%= typeof activeNav !== 'undefined' && activeNav === 'profile' ? 'active' : '' %>">
+    <span class="bn-icon">👤</span><span>প্রোফাইল</span>
+  </a>
+</nav>
+<% } %>
 </body>
 </html>
