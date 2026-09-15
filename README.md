@@ -44,3 +44,21 @@
 - **অ্যাক্টিভিটি লগ** — `/activity` পেজে কে কখন কী এন্ট্রি যোগ/আপডেট/ডিলিট করেছেন বা স্ট্যাটাস পরিবর্তন করেছেন তার ইতিহাস দেখা যায়।
 - **CSV বাল্ক ইম্পোর্ট** — `/entries/import` থেকে CSV ফাইল আপলোড করে একসাথে অনেক এন্ট্রি যোগ করা যায় (প্রয়োজনীয় কলাম: `item_name`, বাকিগুলো ঐচ্ছিক — পেজে টেমপ্লেট কলাম-নাম দেখানো আছে)।
 - **ড্যাশবোর্ড ট্রেন্ড চার্ট** — সারসংক্ষেপ পেজে গত ১৪ দিনের মোট এন্ট্রি বনাম মিলে যাওয়া এন্ট্রির লাইন চার্ট (Chart.js দিয়ে, ব্রাউজারে রেন্ডার হয়)।
+
+## নিরাপত্তা ও স্থিতিশীলতা আপগ্রেড
+
+- **CSRF প্রোটেকশন** — প্রতিটি ফর্মে একটা সেশন-বাউন্ড টোকেন (`_csrf`) থাকে, সাবমিট করার সময় যাচাই হয়।
+- **Rate limiting** — `/login` ও `/register`-এ প্রতি IP-তে ১৫ মিনিটে সর্বোচ্চ ১০টি চেষ্টা, brute-force ঠেকাতে।
+- **Helmet + Content-Security-Policy** — নিরাপত্তা হেডার যোগ করা হয়েছে; ড্যাশবোর্ডের ইনলাইন স্ক্রিপ্ট per-request nonce দিয়ে অনুমোদিত।
+- **Secure session cookie** — `trust proxy` সেট করা আছে (Render-এর প্রোক্সির পেছনে সঠিকভাবে কাজ করার জন্য), cookie-তে `secure: 'auto'`, `httpOnly`, `sameSite: 'lax'`।
+- **`SESSION_SECRET` বাধ্যতামূলক production-এ** — `NODE_ENV=production` অবস্থায় এই ভেরিয়েবল ছাড়া সার্ভার চালু হবে না।
+- **ক্র্যাশ-প্রতিরোধ** — DB pool-এর idle error হ্যান্ডল করা হয়, সব async রুট centralized error handler-এ যায় (unhandled rejection-এ প্রসেস ক্র্যাশ করবে না), 404 পেজ যোগ করা হয়েছে, আর SIGTERM/SIGINT-এ গ্রেসফুল শাটডাউন হয়।
+- **`/healthz`** — Render বা uptime monitor-এর জন্য সেশন/DB ছাড়া একটা লাইভনেস চেক এন্ডপয়েন্ট।
+- **সার্ভার-সাইড ভ্যালিডেশন** — চাহিদা/প্রাপ্ত পরিমাণ (req_qty/received_qty) এখন সার্ভারেও যাচাই হয়, শুধু ব্রাউজারের `type="number"`-এর উপর ভরসা করা হয় না।
+
+## টেস্ট ও ডেপ্লয়মেন্ট
+
+- `npm test` — `matching.js`-এর অটো-স্ট্যাটাস লজিকের জন্য ইউনিট টেস্ট (Node-এর বিল্ট-ইন `node:test`, আলাদা কোনো প্যাকেজ লাগে না)।
+- `Dockerfile` — চাইলে Render-এর বদলে যেকোনো Docker-সমর্থিত হোস্টেও (Railway, Fly.io, নিজের VPS) ডেপ্লয় করা যাবে: `docker build -t it-requisition-tracker .` তারপর `docker run -p 3000:3000 --env-file .env it-requisition-tracker`।
+- Environment variable-এ `NODE_ENV=production` যোগ করা ভালো — এতে `SESSION_SECRET` বাধ্যতামূলক চেক আর secure cookie ঠিকভাবে কাজ করবে।
+
