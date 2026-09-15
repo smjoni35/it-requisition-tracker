@@ -22,45 +22,16 @@ const authLimiter = rateLimit({
   }
 });
 
+// রেজিস্ট্রেশন বন্ধ — এখন থেকে নতুন স্টাফ শুধু অ্যাডমিন প্যানেল
+// (/admin/users) থেকেই যোগ করা যাবে, কেউ নিজে নিজে অ্যাকাউন্ট
+// খুলতে পারবে না।
 router.get('/register', (req, res) => {
-  res.render('register', { error: null, name: '', email: '' });
+  res.redirect('/login');
 });
 
-router.post('/register', authLimiter, asyncHandler(async (req, res) => {
-  const { name, email, password, confirm } = req.body;
-
-  if (!name || !email || !password) {
-    return res.render('register', { error: 'সব ঘর পূরণ করুন।', name, email });
-  }
-  if (password !== confirm) {
-    return res.render('register', { error: 'পাসওয়ার্ড মিলছে না।', name, email });
-  }
-  if (password.length < 6) {
-    return res.render('register', { error: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।', name, email });
-  }
-
-  try {
-    const existing = await pool.query('SELECT id FROM it_users WHERE email = $1', [email.toLowerCase()]);
-    if (existing.rows.length > 0) {
-      return res.render('register', { error: 'এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে।', name, email });
-    }
-
-    const hash = await bcrypt.hash(password, 10);
-    const userCount = await pool.query('SELECT COUNT(*)::int AS c FROM it_users');
-    const role = userCount.rows[0].c === 0 ? 'admin' : 'staff';
-
-    const result = await pool.query(
-      'INSERT INTO it_users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
-      [name, email.toLowerCase(), hash, role]
-    );
-
-    req.session.user = result.rows[0];
-    res.redirect('/');
-  } catch (err) {
-    console.error(err);
-    res.render('register', { error: 'কিছু একটা ভুল হয়েছে, আবার চেষ্টা করুন।', name, email });
-  }
-}));
+router.post('/register', (req, res) => {
+  res.redirect('/login');
+});
 
 router.get('/login', (req, res) => {
   res.render('login', { error: null, email: '' });

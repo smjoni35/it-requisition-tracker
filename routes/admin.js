@@ -140,4 +140,48 @@ router.post('/admin/users/:id/delete', asyncHandler(async (req, res) => {
   });
 }));
 
+router.post('/admin/users/new', asyncHandler(async (req, res) => {
+  const { name, email, password, confirm, role } = req.body;
+
+  const result = await pool.query(
+    'SELECT id, name, email, role, created_at FROM it_users ORDER BY created_at ASC'
+  );
+  const users = result.rows;
+
+  const chosenRole = role === 'admin' ? 'admin' : 'staff';
+
+  if (!name || !email || !password) {
+    return res.render('admin-users', { user: req.session.user, activeNav: 'profile', users, error: 'সব ঘর পূরণ করুন।', success: null });
+  }
+  if (password !== confirm) {
+    return res.render('admin-users', { user: req.session.user, activeNav: 'profile', users, error: 'পাসওয়ার্ড মিলছে না।', success: null });
+  }
+  if (password.length < 6) {
+    return res.render('admin-users', { user: req.session.user, activeNav: 'profile', users, error: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।', success: null });
+  }
+
+  const existing = await pool.query('SELECT id FROM it_users WHERE email = $1', [email.toLowerCase()]);
+  if (existing.rows.length > 0) {
+    return res.render('admin-users', { user: req.session.user, activeNav: 'profile', users, error: 'এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে।', success: null });
+  }
+
+  const hash = await bcrypt.hash(password, 10);
+  await pool.query(
+    'INSERT INTO it_users (name, email, password_hash, role) VALUES ($1, $2, $3, $4)',
+    [name, email.toLowerCase(), hash, chosenRole]
+  );
+
+  const updatedUsers = await pool.query(
+    'SELECT id, name, email, role, created_at FROM it_users ORDER BY created_at ASC'
+  );
+
+  res.render('admin-users', {
+    user: req.session.user,
+    activeNav: 'profile',
+    users: updatedUsers.rows,
+    error: null,
+    success: `${name} (${email}) যোগ করা হয়েছে।`
+  });
+}));
+
 module.exports = router;
