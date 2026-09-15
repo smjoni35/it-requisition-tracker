@@ -49,6 +49,13 @@
   </form>
 </div>
 
+<% if (user.role === 'admin') { %>
+<div class="slip">
+  <div class="slip-title"><b>অ্যাডমিন</b></div>
+  <a class="btn full secondary" href="/admin/users" style="display:block; text-align:center; text-decoration:none;">স্টাফ ম্যানেজমেন্ট</a>
+</div>
+<% } %>
+
 <form action="/logout" method="POST">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <button class="btn full danger" type="submit">লগআউট</button>

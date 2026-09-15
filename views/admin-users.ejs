@@ -1,0 +1,31 @@
+<%- include('partials/header', { pageTitle: 'স্টাফ ম্যানেজমেন্ট', user: user, activeNav: activeNav }) %>
+
+<h2>স্টাফ ম্যানেজমেন্ট</h2>
+<p style="color:var(--graphite-soft); font-size:14px; margin:6px 0 20px;">যেকোনো স্টাফের পাসওয়ার্ড এখান থেকে বদলে দিতে পারবেন।</p>
+
+<% if (error) { %><div class="error-box"><%= error %></div><% } %>
+<% if (success) { %><div class="success-box"><%= success %></div><% } %>
+
+<% users.forEach(function(u) { %>
+  <div class="slip">
+    <div class="slip-title"><b><%= u.name %></b> <span style="color:var(--graphite-soft); font-weight:400;">(<%= u.role === 'admin' ? 'অ্যাডমিন' : 'স্টাফ' %>)</span></div>
+    <div class="profile-row">
+      <span class="profile-label">ইমেইল</span>
+      <span class="profile-value"><%= u.email %></span>
+    </div>
+    <form method="POST" action="/admin/users/<%= u.id %>/password">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <label>নতুন পাসওয়ার্ড</label>
+        <input type="password" name="new_password" required minlength="6">
+      </div>
+      <div class="field">
+        <label>নতুন পাসওয়ার্ড আবার লিখুন</label>
+        <input type="password" name="confirm_password" required minlength="6">
+      </div>
+      <button class="btn full secondary" type="submit">পাসওয়ার্ড বদলান</button>
+    </form>
+  </div>
+<% }) %>
+
+<%- include('partials/footer') %>
