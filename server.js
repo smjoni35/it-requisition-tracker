@@ -11,6 +11,7 @@ const { pool, initDb, closeDb } = require('./db');
 const { attachCsrfToken, verifyCsrfToken } = require('./middleware/csrf');
 const authRoutes = require('./routes/auth');
 const entryRoutes = require('./routes/entries');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -93,6 +94,7 @@ app.get('/healthz', (req, res) => {
 
 app.use('/', authRoutes);
 app.use('/', entryRoutes);
+app.use('/', adminRoutes);
 
 // ---------- 404 ----------
 app.use((req, res) => {
