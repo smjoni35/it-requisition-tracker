@@ -6,6 +6,37 @@
 <% if (error) { %><div class="error-box"><%= error %></div><% } %>
 <% if (success) { %><div class="success-box"><%= success %></div><% } %>
 
+<div class="slip">
+  <div class="slip-title"><b>নতুন স্টাফ যোগ করুন</b></div>
+  <form method="POST" action="/admin/users/new">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="field">
+      <label>নাম</label>
+      <input type="text" name="name" required>
+    </div>
+    <div class="field">
+      <label>ইমেইল</label>
+      <input type="email" name="email" required>
+    </div>
+    <div class="field">
+      <label>পাসওয়ার্ড</label>
+      <input type="password" name="password" required minlength="6">
+    </div>
+    <div class="field">
+      <label>পাসওয়ার্ড আবার লিখুন</label>
+      <input type="password" name="confirm" required minlength="6">
+    </div>
+    <div class="field">
+      <label>ভূমিকা</label>
+      <select name="role">
+        <option value="staff">স্টাফ</option>
+        <option value="admin">অ্যাডমিন</option>
+      </select>
+    </div>
+    <button class="btn full" type="submit">যোগ করুন</button>
+  </form>
+</div>
+
 <% users.forEach(function(u) { %>
   <div class="slip">
     <div class="slip-title"><b><%= u.name %></b> <span style="color:var(--graphite-soft); font-weight:400;">(<%= u.role === 'admin' ? 'অ্যাডমিন' : 'স্টাফ' %>)</span></div>
