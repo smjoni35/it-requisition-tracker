@@ -1,10 +1,13 @@
 const express = require('express');
 const multer = require('multer');
+const bcrypt = require('bcrypt');
 const ExcelJS = require('exceljs');
 const { pool } = require('../db');
 const { computeAutoStatus } = require('./matching');
 const { requireLogin, requireAdmin } = require('../middleware/auth');
+const { checkCsrf } = require('../middleware/csrf');
 const { logActivity } = require('../lib/activity');
+const { asyncHandler } = require('../lib/async-handler');
 
 const router = express.Router();
 
@@ -27,6 +30,16 @@ const csvUpload = multer({
 
 function effectiveStatus(entry) {
   return entry.manual_status || entry.auto_status;
+}
+
+// Quantity fields come in as free-text form values. Blank is fine (treated
+// as 0), but anything non-numeric or negative should be rejected server-side
+// rather than silently stored as NaN/garbage or passed straight to Postgres.
+function parseNonNegativeNumber(value) {
+  if (value === undefined || value === null || String(value).trim() === '') return { ok: true, value: 0 };
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) return { ok: false, value: 0 };
+  return { ok: true, value: n };
 }
 
 // Builds a shared WHERE clause for search (q) + status filter, used by the
@@ -68,7 +81,7 @@ async function fetchFilteredEntries(query, { limit, offset } = {}) {
 
 // ---------- Dashboard ----------
 
-router.get('/', requireLogin, async (req, res) => {
+router.get('/', requireLogin, asyncHandler(async (req, res) => {
   const result = await pool.query('SELECT * FROM it_entries ORDER BY created_at DESC');
   const entries = result.rows;
 
@@ -107,11 +120,11 @@ router.get('/', requireLogin, async (req, res) => {
     diff: totalReq - totalRecv,
     trend: trendResult.rows
   });
-});
+}));
 
 // ---------- Entries list (search + filter + pagination) ----------
 
-router.get('/entries', requireLogin, async (req, res) => {
+router.get('/entries', requireLogin, asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
   const { where, params } = buildFilter(req.query);
 
@@ -132,7 +145,7 @@ router.get('/entries', requireLogin, async (req, res) => {
     totalPages,
     totalCount
   });
-});
+}));
 
 router.get('/entries/new', requireLogin, (req, res) => {
   res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: {}, error: null, editing: false });
@@ -143,13 +156,20 @@ router.post('/entries/new', requireLogin, (req, res, next) => {
     if (err) return res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: req.body, error: err.message, editing: false });
     next();
   });
-}, async (req, res) => {
+}, checkCsrf, asyncHandler(async (req, res) => {
   const b = req.body;
+
+  const reqQty = parseNonNegativeNumber(b.req_qty);
+  const recvQty = parseNonNegativeNumber(b.received_qty);
+  if (!reqQty.ok || !recvQty.ok) {
+    return res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: b, error: 'পরিমাণ একটি বৈধ, শূন্য বা তার বেশি সংখ্যা হতে হবে।', editing: false });
+  }
+
   const auto_status = computeAutoStatus({
     item_name: b.item_name,
     gatepass_item_name: b.gatepass_item_name,
-    req_qty: b.req_qty,
-    received_qty: b.received_qty
+    req_qty: reqQty.value,
+    received_qty: recvQty.value
   });
 
   const image_data = req.file ? req.file.buffer.toString('base64') : null;
@@ -170,12 +190,12 @@ router.post('/entries/new', requireLogin, (req, res, next) => {
         b.req_no || null,
         b.req_date || null,
         b.description || null,
-        b.req_qty || 0,
+        reqQty.value,
         b.unit || null,
         b.gatepass_no || null,
         b.gatepass_date || null,
         b.gatepass_item_name || null,
-        b.received_qty || 0,
+        recvQty.value,
         b.received_date || null,
         b.sender_name || null,
         auto_status,
@@ -197,26 +217,33 @@ router.post('/entries/new', requireLogin, (req, res, next) => {
     console.error(err);
     res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: b, error: 'সেভ করা যায়নি, আবার চেষ্টা করুন।', editing: false });
   }
-});
+}));
 
-router.get('/entries/:id/edit', requireLogin, async (req, res) => {
+router.get('/entries/:id/edit', requireLogin, asyncHandler(async (req, res) => {
   const result = await pool.query('SELECT * FROM it_entries WHERE id = $1', [req.params.id]);
   if (result.rows.length === 0) return res.redirect('/entries');
   res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: result.rows[0], error: null, editing: true });
-});
+}));
 
 router.post('/entries/:id/edit', requireLogin, (req, res, next) => {
   imageUpload.single('image')(req, res, (err) => {
     if (err) return res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: { ...req.body, id: req.params.id }, error: err.message, editing: true });
     next();
   });
-}, async (req, res) => {
+}, checkCsrf, asyncHandler(async (req, res) => {
   const b = req.body;
+
+  const reqQty = parseNonNegativeNumber(b.req_qty);
+  const recvQty = parseNonNegativeNumber(b.received_qty);
+  if (!reqQty.ok || !recvQty.ok) {
+    return res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: { ...b, id: req.params.id }, error: 'পরিমাণ একটি বৈধ, শূন্য বা তার বেশি সংখ্যা হতে হবে।', editing: true });
+  }
+
   const auto_status = computeAutoStatus({
     item_name: b.item_name,
     gatepass_item_name: b.gatepass_item_name,
-    req_qty: b.req_qty,
-    received_qty: b.received_qty
+    req_qty: reqQty.value,
+    received_qty: recvQty.value
   });
 
   try {
@@ -244,8 +271,8 @@ router.post('/entries/:id/edit', requireLogin, (req, res, next) => {
        WHERE id=$17`,
       [
         b.item_name, b.req_no || null, b.req_date || null, b.description || null,
-        b.req_qty || 0, b.unit || null, b.gatepass_no || null, b.gatepass_date || null,
-        b.gatepass_item_name || null, b.received_qty || 0, b.received_date || null,
+        reqQty.value, b.unit || null, b.gatepass_no || null, b.gatepass_date || null,
+        b.gatepass_item_name || null, recvQty.value, b.received_date || null,
         b.sender_name || null, auto_status, image_data, image_mime, image_filename, req.params.id
       ]
     );
@@ -262,9 +289,9 @@ router.post('/entries/:id/edit', requireLogin, (req, res, next) => {
     console.error(err);
     res.render('new-entry', { user: req.session.user, activeNav: 'new', entry: { ...b, id: req.params.id }, error: 'আপডেট করা যায়নি।', editing: true });
   }
-});
+}));
 
-router.post('/entries/:id/status', requireLogin, async (req, res) => {
+router.post('/entries/:id/status', requireLogin, asyncHandler(async (req, res) => {
   const { manual_status, status_note } = req.body;
   const value = manual_status === 'auto' ? null : manual_status;
 
@@ -291,9 +318,9 @@ router.post('/entries/:id/status', requireLogin, async (req, res) => {
     });
   }
   res.redirect('/entries');
-});
+}));
 
-router.post('/entries/:id/delete', requireLogin, requireAdmin, async (req, res) => {
+router.post('/entries/:id/delete', requireLogin, requireAdmin, asyncHandler(async (req, res) => {
   const existing = await pool.query('SELECT item_name, req_no FROM it_entries WHERE id = $1', [req.params.id]);
   const prev = existing.rows[0];
 
@@ -309,21 +336,21 @@ router.post('/entries/:id/delete', requireLogin, requireAdmin, async (req, res) 
     });
   }
   res.redirect('/entries');
-});
+}));
 
 // ---------- Proof image ----------
 
-router.get('/entries/:id/image', requireLogin, async (req, res) => {
+router.get('/entries/:id/image', requireLogin, asyncHandler(async (req, res) => {
   const result = await pool.query('SELECT image_data, image_mime FROM it_entries WHERE id = $1', [req.params.id]);
   const row = result.rows[0];
   if (!row || !row.image_data) return res.status(404).send('ছবি নেই');
   res.set('Content-Type', row.image_mime || 'application/octet-stream');
   res.send(Buffer.from(row.image_data, 'base64'));
-});
+}));
 
 // ---------- Print-friendly report ----------
 
-router.get('/entries/print', requireLogin, async (req, res) => {
+router.get('/entries/print', requireLogin, asyncHandler(async (req, res) => {
   const entries = await fetchFilteredEntries(req.query);
   const stats = { matched: 0, mismatched: 0, partial: 0, pending: 0 };
   entries.forEach((e) => { if (stats[e.status] !== undefined) stats[e.status] += 1; });
@@ -338,11 +365,11 @@ router.get('/entries/print', requireLogin, async (req, res) => {
     status: req.query.status || 'all',
     generatedAt: new Date()
   });
-});
+}));
 
 // ---------- Excel export ----------
 
-router.get('/entries/export/excel', requireLogin, async (req, res) => {
+router.get('/entries/export/excel', requireLogin, asyncHandler(async (req, res) => {
   const entries = await fetchFilteredEntries(req.query);
 
   const workbook = new ExcelJS.Workbook();
@@ -387,11 +414,11 @@ router.get('/entries/export/excel', requireLogin, async (req, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="entries-${Date.now()}.xlsx"`);
   await workbook.xlsx.write(res);
   res.end();
-});
+}));
 
 // ---------- Activity log ----------
 
-router.get('/activity', requireLogin, async (req, res) => {
+router.get('/activity', requireLogin, asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
   const limit = 25;
 
@@ -413,7 +440,7 @@ router.get('/activity', requireLogin, async (req, res) => {
     currentPage,
     totalPages
   });
-});
+}));
 
 // ---------- CSV bulk import ----------
 
@@ -468,7 +495,7 @@ router.post('/entries/import', requireLogin, (req, res, next) => {
     if (err) return res.render('import', { user: req.session.user, activeNav: '', error: err.message, result: null, columns: CSV_COLUMNS });
     next();
   });
-}, async (req, res) => {
+}, checkCsrf, asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.render('import', { user: req.session.user, activeNav: '', error: 'CSV ফাইল বাছাই করুন।', result: null, columns: CSV_COLUMNS });
   }
@@ -492,11 +519,15 @@ router.post('/entries/import', requireLogin, (req, res, next) => {
     });
     if (!record.item_name) { failed += 1; continue; }
 
+    const reqQty = parseNonNegativeNumber(record.req_qty);
+    const recvQty = parseNonNegativeNumber(record.received_qty);
+    if (!reqQty.ok || !recvQty.ok) { failed += 1; continue; }
+
     const auto_status = computeAutoStatus({
       item_name: record.item_name,
       gatepass_item_name: record.gatepass_item_name,
-      req_qty: record.req_qty,
-      received_qty: record.received_qty
+      req_qty: reqQty.value,
+      received_qty: recvQty.value
     });
 
     try {
@@ -511,12 +542,12 @@ router.post('/entries/import', requireLogin, (req, res, next) => {
           record.req_no || null,
           record.req_date || null,
           record.description || null,
-          record.req_qty || 0,
+          reqQty.value,
           record.unit || null,
           record.gatepass_no || null,
           record.gatepass_date || null,
           record.gatepass_item_name || null,
-          record.received_qty || 0,
+          recvQty.value,
           record.received_date || null,
           record.sender_name || null,
           auto_status
@@ -544,7 +575,7 @@ router.post('/entries/import', requireLogin, (req, res, next) => {
     result: { inserted, failed, total: dataRows.length },
     columns: CSV_COLUMNS
   });
-});
+}));
 
 // ---------- Profile ----------
 
@@ -552,7 +583,7 @@ router.get('/profile', requireLogin, (req, res) => {
   res.render('profile', { user: req.session.user, activeNav: 'profile', error: null, success: null });
 });
 
-router.post('/profile', requireLogin, async (req, res) => {
+router.post('/profile', requireLogin, asyncHandler(async (req, res) => {
   const name = (req.body.name || '').trim();
   if (!name) {
     return res.render('profile', { user: req.session.user, activeNav: 'profile', error: 'নাম খালি রাখা যাবে না।', success: null });
@@ -565,10 +596,9 @@ router.post('/profile', requireLogin, async (req, res) => {
     console.error(err);
     res.render('profile', { user: req.session.user, activeNav: 'profile', error: 'আপডেট করা যায়নি।', success: null });
   }
-});
+}));
 
-router.post('/profile/password', requireLogin, async (req, res) => {
-  const bcrypt = require('bcrypt');
+router.post('/profile/password', requireLogin, asyncHandler(async (req, res) => {
   const { current_password, new_password, confirm_password } = req.body;
 
   if (!current_password || !new_password || !confirm_password) {
@@ -594,6 +624,6 @@ router.post('/profile/password', requireLogin, async (req, res) => {
     console.error(err);
     res.render('profile', { user: req.session.user, activeNav: 'profile', error: 'পরিবর্তন করা যায়নি।', success: null });
   }
-});
+}));
 
 module.exports = router;

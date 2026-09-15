@@ -1,14 +1,32 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const rateLimit = require('express-rate-limit');
 const { pool } = require('../db');
+const { asyncHandler } = require('../lib/async-handler');
 
 const router = express.Router();
+
+// Slows down credential-stuffing / brute-force attempts against login and
+// registration. Keyed by IP (via req.ip, which respects 'trust proxy').
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).render('error', {
+      user: null,
+      activeNav: '',
+      message: 'অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।'
+    });
+  }
+});
 
 router.get('/register', (req, res) => {
   res.render('register', { error: null, name: '', email: '' });
 });
 
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, asyncHandler(async (req, res) => {
   const { name, email, password, confirm } = req.body;
 
   if (!name || !email || !password) {
@@ -16,6 +34,9 @@ router.post('/register', async (req, res) => {
   }
   if (password !== confirm) {
     return res.render('register', { error: 'পাসওয়ার্ড মিলছে না।', name, email });
+  }
+  if (password.length < 6) {
+    return res.render('register', { error: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।', name, email });
   }
 
   try {
@@ -39,13 +60,13 @@ router.post('/register', async (req, res) => {
     console.error(err);
     res.render('register', { error: 'কিছু একটা ভুল হয়েছে, আবার চেষ্টা করুন।', name, email });
   }
-});
+}));
 
 router.get('/login', (req, res) => {
   res.render('login', { error: null, email: '' });
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   try {
     const result = await pool.query('SELECT * FROM it_users WHERE email = $1', [(email || '').toLowerCase()]);
@@ -66,7 +87,7 @@ router.post('/login', async (req, res) => {
     console.error(err);
     res.render('login', { error: 'কিছু একটা ভুল হয়েছে, আবার চেষ্টা করুন।', email });
   }
-});
+}));
 
 router.post('/logout', (req, res) => {
   req.session.destroy(() => {
