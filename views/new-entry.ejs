@@ -12,6 +12,7 @@
 <% if (error) { %><div class="error-box"><%= error %></div><% } %>
 
 <form method="POST" action="<%= editing ? '/entries/' + entry.id + '/edit' : '/entries/new' %>" enctype="multipart/form-data">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
   <div class="slip">
     <div class="slip-title"><b>রিকুইজিশন স্লিপ</b> — যা চাওয়া হয়েছিল</div>

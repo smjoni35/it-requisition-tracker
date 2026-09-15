@@ -26,6 +26,7 @@
 </div>
 
 <form method="POST" action="/entries/import" enctype="multipart/form-data" class="slip">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <div class="field">
     <label>CSV ফাইল</label>
     <input type="file" name="csv_file" accept=".csv,text/csv" required>

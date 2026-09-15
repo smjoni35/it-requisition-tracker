@@ -8,6 +8,7 @@
     <% if (error) { %><div class="error-box"><%= error %></div><% } %>
 
     <form method="POST" action="/register">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="field">
         <label>নাম</label>
         <input type="text" name="name" value="<%= name %>" required autofocus>

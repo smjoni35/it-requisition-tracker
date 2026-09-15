@@ -20,6 +20,7 @@
 <div class="slip">
   <div class="slip-title"><b>নাম পরিবর্তন</b></div>
   <form method="POST" action="/profile">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <div class="field">
       <label>নাম</label>
       <input type="text" name="name" value="<%= user.name %>" required>
@@ -31,6 +32,7 @@
 <div class="slip">
   <div class="slip-title"><b>পাসওয়ার্ড পরিবর্তন</b></div>
   <form method="POST" action="/profile/password">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <div class="field">
       <label>বর্তমান পাসওয়ার্ড</label>
       <input type="password" name="current_password" required>
@@ -48,6 +50,7 @@
 </div>
 
 <form action="/logout" method="POST">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <button class="btn full danger" type="submit">লগআউট</button>
 </form>
 

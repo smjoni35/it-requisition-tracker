@@ -64,8 +64,8 @@
   <a class="toolbar-link" href="/entries/export/excel">📊 এক্সেল এক্সপোর্ট</a>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
-<script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js" nonce="<%= cspNonce %>"></script>
+<script nonce="<%= cspNonce %>">
   const trend = <%- JSON.stringify(trend) %>;
   const ctx = document.getElementById('trendChart');
   if (ctx && trend.length) {
