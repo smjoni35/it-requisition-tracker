@@ -85,19 +85,70 @@ router.get('/', requireLogin, asyncHandler(async (req, res) => {
   const result = await pool.query('SELECT * FROM it_entries ORDER BY created_at DESC');
   const entries = result.rows;
 
+  const DAY = 86400000;
+  const now = new Date();
+  const MONTHS = ['জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+
   const stats = { matched: 0, mismatched: 0, partial: 0, pending: 0 };
   let totalReq = 0;
   let totalRecv = 0;
+  let last7 = 0;
+  let prev7 = 0;
+  const shortages = [];
+  const senderMap = new Map();
+  const leadDays = [];
+  const open = [];
+
+  const months = [];
+  for (let i = 5; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: MONTHS[d.getMonth()], matched: 0, partial: 0, mismatched: 0, pending: 0 });
+  }
 
   entries.forEach((e) => {
     const status = effectiveStatus(e);
     if (stats[status] !== undefined) stats[status] += 1;
-    totalReq += Number(e.req_qty) || 0;
-    totalRecv += Number(e.received_qty) || 0;
+    const rq = Number(e.req_qty) || 0;
+    const rc = Number(e.received_qty) || 0;
+    totalReq += rq;
+    totalRecv += rc;
+
+    if (rq > rc) shortages.push({ id: e.id, item: e.item_name, req: rq, recv: rc, gap: rq - rc, unit: e.unit || '' });
+
+    const sender = (e.sender_name || '').trim();
+    if (sender) {
+      const row = senderMap.get(sender) || { name: sender, total: 0, matched: 0 };
+      row.total += 1;
+      if (status === 'matched') row.matched += 1;
+      senderMap.set(sender, row);
+    }
+
+    if (e.req_date && e.received_date) {
+      const days = Math.round((new Date(e.received_date) - new Date(e.req_date)) / DAY);
+      if (days >= 0) leadDays.push(days);
+    }
+
+    const created = new Date(e.created_at);
+    const age = Math.floor((now - created) / DAY);
+    if (age < 7) last7 += 1;
+    else if (age < 14) prev7 += 1;
+    if (status !== 'matched' && age >= 7) open.push({ id: e.id, item: e.item_name, req_no: e.req_no, status, age });
+
+    const bucket = months.find((m) => m.key === `${created.getFullYear()}-${created.getMonth()}`);
+    if (bucket && bucket[status] !== undefined) bucket[status] += 1;
   });
 
   const total = entries.length;
   const matchRate = total > 0 ? Math.round((stats.matched / total) * 100) : 0;
+  const fulfilRate = totalReq > 0 ? Math.round((totalRecv / totalReq) * 100) : 0;
+  const avgLead = leadDays.length ? Math.round((leadDays.reduce((a, b) => a + b, 0) / leadDays.length) * 10) / 10 : null;
+
+  shortages.sort((x, y) => y.gap - x.gap);
+  open.sort((x, y) => y.age - x.age);
+  const senders = Array.from(senderMap.values())
+    .map((r) => ({ ...r, rate: Math.round((r.matched / r.total) * 100) }))
+    .sort((x, y) => y.total - x.total)
+    .slice(0, 5);
 
   const trendResult = await pool.query(`
     SELECT to_char(d.day, 'YYYY-MM-DD') AS day,
@@ -109,15 +160,30 @@ router.get('/', requireLogin, asyncHandler(async (req, res) => {
     ORDER BY d.day
   `);
 
+  const activityResult = await pool.query(
+    'SELECT user_name, action, item_name, req_no, created_at FROM it_activity_log ORDER BY created_at DESC LIMIT 6'
+  );
+
   res.render('dashboard', {
     user: req.session.user,
     activeNav: 'dashboard',
     stats,
     total,
     matchRate,
+    fulfilRate,
+    avgLead,
     totalReq,
     totalRecv,
     diff: totalReq - totalRecv,
+    last7,
+    prev7,
+    months,
+    shortages: shortages.slice(0, 5),
+    shortageCount: shortages.length,
+    open: open.slice(0, 5),
+    openCount: open.length,
+    senders,
+    activity: activityResult.rows,
     trend: trendResult.rows
   });
 }));
