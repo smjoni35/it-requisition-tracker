@@ -1,67 +1,50 @@
-<%- include('partials/header', { pageTitle: 'সারসংক্ষেপ', user: user }) %>
+<%- include('partials/header', { pageTitle: 'সারসংক্ষেপ', user: user, activeNav: 'dashboard' }) %>
+<% var pc = function (n) { return total ? (n / total * 100) : 0; }; %>
 
-<a class="btn print-btn full" href="/entries/print">🖨️ পূর্ণ রিপোর্ট প্রিন্ট / PDF সেভ করুন</a>
-
-<div class="hero-card">
-  <div class="hero-text">
-    <div class="hero-eyebrow">মোট <%= total %>টি এন্ট্রি</div>
-    <div class="hero-title">মিলে যাওয়ার হার</div>
-    <div class="hero-desc">সঠিকভাবে যাচাইকৃত রিকুইজিশনের হার এখানে দেখা যাচ্ছে</div>
+<div class="page-head">
+  <div>
+    <h2>সারসংক্ষেপ</h2>
+    <p>মোট <%= total %>টি এন্ট্রির মিলকরণের বর্তমান অবস্থা</p>
   </div>
-  <div class="progress-ring" style="--pct: <%= matchRate %>;">
-    <div class="progress-ring-inner">
-      <div class="progress-ring-num"><%= matchRate %>%</div>
-    </div>
+  <div class="actions-row" style="margin:0;">
+    <a class="btn small" href="/entries/new">+ নতুন এন্ট্রি</a>
+    <a class="btn small secondary" href="/entries/print">রিপোর্ট প্রিন্ট / PDF</a>
+    <a class="btn small secondary" href="/entries/export/excel">এক্সেল</a>
   </div>
 </div>
 
-<div class="stat-grid">
-  <div class="stat-tile">
-    <div class="stat-icon-badge badge-green">✓</div>
-    <div class="stat-num"><%= stats.matched %></div>
-    <div class="stat-label">মিলেছে</div>
+<div class="panel">
+  <div class="rate-row">
+    <div class="rate-num"><%= matchRate %>%</div>
+    <div class="rate-note">রিকুইজিশন সঠিকভাবে মিলেছে</div>
   </div>
-  <div class="stat-tile">
-    <div class="stat-icon-badge badge-red">✕</div>
-    <div class="stat-num"><%= stats.mismatched %></div>
-    <div class="stat-label">মিলেনি</div>
+  <div class="seg" role="img" aria-label="স্ট্যাটাস অনুযায়ী ভাগ">
+    <span class="c-matched" style="width:<%= pc(stats.matched) %>%"></span>
+    <span class="c-partial" style="width:<%= pc(stats.partial) %>%"></span>
+    <span class="c-mismatched" style="width:<%= pc(stats.mismatched) %>%"></span>
+    <span class="c-pending" style="width:<%= pc(stats.pending) %>%"></span>
   </div>
-  <div class="stat-tile">
-    <div class="stat-icon-badge badge-amber">!</div>
-    <div class="stat-num"><%= stats.partial %></div>
-    <div class="stat-label">আংশিক মিলেছে</div>
-  </div>
-  <div class="stat-tile">
-    <div class="stat-icon-badge badge-grey">…</div>
-    <div class="stat-num"><%= stats.pending %></div>
-    <div class="stat-label">অপেক্ষমান</div>
+  <div class="legend">
+    <a href="/entries?status=matched"><i class="c-matched"></i><span>মিলেছে</span><b><%= stats.matched %></b></a>
+    <a href="/entries?status=partial"><i class="c-partial"></i><span>আংশিক</span><b><%= stats.partial %></b></a>
+    <a href="/entries?status=mismatched"><i class="c-mismatched"></i><span>মিলেনি</span><b><%= stats.mismatched %></b></a>
+    <a href="/entries?status=pending"><i class="c-pending"></i><span>অপেক্ষমান</span><b><%= stats.pending %></b></a>
   </div>
 </div>
 
-<div class="totals-card">
-  <div class="totals-item">
-    <div class="totals-num mono"><%= totalReq %></div>
-    <div class="totals-label">মোট চাহিদা</div>
+<div class="panel">
+  <div class="panel-title">পরিমাণ: চাহিদা বনাম প্রাপ্ত</div>
+  <div class="figs">
+    <div><b><%= totalReq %></b><span>মোট চাহিদা</span></div>
+    <div><b><%= totalRecv %></b><span>মোট প্রাপ্ত</span></div>
+    <div><b><%= diff %></b><span>পার্থক্য</span></div>
   </div>
-  <div class="totals-item">
-    <div class="totals-num mono"><%= totalRecv %></div>
-    <div class="totals-label">মোট প্রাপ্ত</div>
-  </div>
-  <div class="totals-item">
-    <div class="totals-num mono"><%= diff %></div>
-    <div class="totals-label">পার্থক্য</div>
-  </div>
+  <div class="qbar"><span style="width:<%= Number(totalReq) > 0 ? Math.min(100, Math.round(Number(totalRecv) / Number(totalReq) * 100)) : 0 %>%"></span></div>
 </div>
 
-<div class="slip">
-  <div class="slip-title"><b>গত ১৪ দিনের ট্রেন্ড</b></div>
+<div class="panel">
+  <div class="panel-title">গত ১৪ দিনের ট্রেন্ড</div>
   <canvas id="trendChart" height="180"></canvas>
-</div>
-
-<div class="toolbar-row">
-  <a class="toolbar-link" href="/activity">📜 অ্যাক্টিভিটি লগ</a>
-  <a class="toolbar-link" href="/entries/import">⬆️ CSV ইম্পোর্ট</a>
-  <a class="toolbar-link" href="/entries/export/excel">📊 এক্সেল এক্সপোর্ট</a>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js" nonce="<%= cspNonce %>"></script>
@@ -69,33 +52,21 @@
   const trend = <%- JSON.stringify(trend) %>;
   const ctx = document.getElementById('trendChart');
   if (ctx && trend.length) {
+    Chart.defaults.font.family = '"Hind Siliguri", sans-serif';
+    Chart.defaults.color = '#65728a';
     new Chart(ctx, {
       type: 'line',
       data: {
         labels: trend.map(function (r) { return r.day.slice(5); }),
         datasets: [
-          {
-            label: 'মোট এন্ট্রি',
-            data: trend.map(function (r) { return r.total; }),
-            borderColor: '#5b3ff2',
-            backgroundColor: 'rgba(91,63,242,0.12)',
-            tension: 0.3,
-            fill: true
-          },
-          {
-            label: 'মিলেছে',
-            data: trend.map(function (r) { return r.matched; }),
-            borderColor: '#16915f',
-            backgroundColor: 'rgba(22,145,95,0.12)',
-            tension: 0.3,
-            fill: true
-          }
+          { label: 'মোট এন্ট্রি', data: trend.map(function (r) { return r.total; }), borderColor: '#1c3f66', backgroundColor: 'rgba(28,63,102,0.08)', tension: 0.35, fill: true, pointRadius: 2 },
+          { label: 'মিলেছে', data: trend.map(function (r) { return r.matched; }), borderColor: '#1f7a4c', backgroundColor: 'rgba(31,122,76,0.08)', tension: 0.35, fill: true, pointRadius: 2 }
         ]
       },
       options: {
         responsive: true,
-        plugins: { legend: { position: 'bottom' } },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#eef1f5' } }, x: { grid: { display: false } } }
       }
     });
   }

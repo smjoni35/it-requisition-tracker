@@ -2,8 +2,12 @@
 
 <div class="auth-wrap">
   <div class="auth-card">
+    <div class="auth-brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="7" width="20" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="15" y="11" width="20" height="26" rx="4" fill="#b08a3e"/><path d="M21 24l4 4 7-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>আইটি রিকুইজিশন<br>ট্র্যাকার</div>
+    </div>
     <h1>লগইন করুন</h1>
-    <div class="sub">আইটি রিকুইজিশন ট্র্যাকারে স্বাগতম</div>
+    <div class="sub">রিকুইজিশন ও গেট পাস মিলকরণ পোর্টাল</div>
 
     <% if (error) { %><div class="error-box"><%= error %></div><% } %>
 
@@ -11,11 +15,11 @@
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="field">
         <label>ইমেইল</label>
-        <input type="email" name="email" value="<%= email %>" required autofocus>
+        <input type="email" name="email" value="<%= email %>" required autofocus autocomplete="username">
       </div>
       <div class="field">
         <label>পাসওয়ার্ড</label>
-        <input type="password" name="password" required>
+        <input type="password" name="password" required autocomplete="current-password">
       </div>
       <button class="btn full" type="submit">লগইন</button>
     </form>
