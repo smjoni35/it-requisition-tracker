@@ -2,26 +2,54 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1b2f">
   <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'আইটি রিকুইজিশন ট্র্যাকার' %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla&family=Hind+Siliguri:wght@400;500;600;700&family=Space+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<% var showChrome = (typeof user !== 'undefined' && user); %>
-<% if (showChrome) { %>
+<% var showChrome = (typeof user !== 'undefined' && user); var nav = typeof activeNav !== 'undefined' ? activeNav : ''; %>
+<% if (showChrome) {
+  var I = {
+    list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    chart: '<path d="M3 3v18h18M7 15l4-4 3 3 5-6"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>',
+    upload: '<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
+    users: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M17 4a3.5 3.5 0 010 7M22 20c0-2.5-1.5-4-4-5"/>'
+  };
+  var ico = function (n) { return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + I[n] + '</svg>'; };
+  var mark = '<svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="7" width="20" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="15" y="11" width="20" height="26" rx="4" fill="#b08a3e"/><path d="M21 24l4 4 7-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var side = [['/', 'chart', 'সারসংক্ষেপ', 'dashboard'], ['/entries', 'list', 'সব এন্ট্রি', 'entries'], ['/entries/new', 'plus', 'নতুন এন্ট্রি', 'new'], ['/activity', 'clock', 'অ্যাক্টিভিটি লগ', 'activity'], ['/entries/import', 'upload', 'CSV ইম্পোর্ট', 'import']];
+  if (user.role === 'admin') side.push(['/admin/users', 'users', 'স্টাফ ম্যানেজমেন্ট', 'admin']);
+  side.push(['/profile', 'user', 'প্রোফাইল', 'profile']);
+  var bottom = [['/entries', 'list', 'তালিকা', 'entries'], ['/entries/new', 'plus', 'নতুন এন্ট্রি', 'new'], ['/', 'chart', 'সারসংক্ষেপ', 'dashboard'], ['/profile', 'user', 'প্রোফাইল', 'profile']];
+  var initial = (user.name || '?').trim().charAt(0);
+%>
+<div class="shell">
+<aside class="sidebar">
+  <div class="brand-block"><%- mark %><div><div class="brand-title">আইটি রিকুইজিশন ট্র্যাকার</div><div class="brand-sub">মিলকরণ • হেড অফিস</div></div></div>
+  <nav class="side-nav">
+    <% side.forEach(function (n, i) { if (i === 3) { %><div class="side-sep"></div><% } %>
+    <a href="<%= n[0] %>" class="<%= nav === n[3] ? 'active' : '' %>"><%- ico(n[1]) %><span><%= n[2] %></span></a>
+    <% }); %>
+  </nav>
+  <a class="side-user" href="/profile"><span class="top-bar-avatar"><%= initial %></span><span><%= user.name %><small><%= user.role === 'admin' ? 'অ্যাডমিন' : 'স্টাফ' %></small></span></a>
+</aside>
+<div class="main">
 <header class="top-bar">
   <div class="top-bar-row">
-    <div class="brand-block">
-      <div class="brand-icon">🗃️</div>
-      <div>
-        <div class="brand-title">আইটি রিকুইজিশন ট্র্যাকার</div>
-        <div class="brand-sub">রিকুইজিশন ও গেট পাস মিলকরণ • হেড অফিস</div>
-      </div>
-    </div>
-    <a class="top-bar-avatar" href="/profile" title="<%= user.name %>">👤</a>
+    <div class="brand-block"><%- mark %><div><div class="brand-title">আইটি রিকুইজিশন ট্র্যাকার</div><div class="brand-sub">মিলকরণ • হেড অফিস</div></div></div>
+    <a class="top-bar-avatar" href="/profile" title="<%= user.name %>"><%= initial %></a>
   </div>
 </header>
+<nav class="bottom-nav" aria-label="প্রধান মেনু">
+  <div class="bottom-nav-inner">
+    <% bottom.forEach(function (n) { %><a href="<%= n[0] %>" class="<%= nav === n[3] ? 'active' : '' %>"><%- ico(n[1]) %><span><%= n[2] %></span></a><% }); %>
+  </div>
+</nav>
 <% } %>
 <div class="page<%= showChrome ? ' has-bottom-nav' : '' %>">
