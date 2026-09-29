@@ -1,10 +1,23 @@
 <%- include('partials/header', { pageTitle: 'সারসংক্ষেপ', user: user, activeNav: 'dashboard' }) %>
-<% var pc = function (n) { return total ? (n / total * 100) : 0; }; %>
+<%
+  var pct = function (n) { return total ? Math.round(n / total * 100) : 0; };
+  var delta = last7 - prev7;
+  var labels = { matched: 'মিলেছে', partial: 'আংশিক', mismatched: 'মিলেনি', pending: 'অপেক্ষমান' };
+  var actionLabels = { created: 'নতুন এন্ট্রি যোগ করেছেন', updated: 'এন্ট্রি আপডেট করেছেন', status_changed: 'স্ট্যাটাস বদলেছেন', deleted: 'এন্ট্রি মুছেছেন', imported: 'CSV ইম্পোর্ট করেছেন' };
+  var ago = function (d) {
+    var m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
+    if (m < 1) return 'এইমাত্র';
+    if (m < 60) return m + ' মিনিট আগে';
+    var h = Math.floor(m / 60);
+    if (h < 24) return h + ' ঘণ্টা আগে';
+    return Math.floor(h / 24) + ' দিন আগে';
+  };
+%>
 
 <div class="page-head">
   <div>
     <h2>সারসংক্ষেপ</h2>
-    <p>মোট <%= total %>টি এন্ট্রির মিলকরণের বর্তমান অবস্থা</p>
+    <p>রিকুইজিশন ও গেট পাসের মিলকরণের বিশ্লেষণ</p>
   </div>
   <div class="actions-row" style="margin:0;">
     <a class="btn small" href="/entries/new">+ নতুন এন্ট্রি</a>
@@ -13,48 +26,204 @@
   </div>
 </div>
 
-<div class="panel">
-  <div class="rate-row">
-    <div class="rate-num"><%= matchRate %>%</div>
-    <div class="rate-note">রিকুইজিশন সঠিকভাবে মিলেছে</div>
+<% if (total === 0) { %>
+  <div class="panel empty-hero">
+    <h3>এখনো কোনো এন্ট্রি নেই</h3>
+    <p>প্রথম এন্ট্রি যোগ করলেই এখানে মিলের হার, ঘাটতির তালিকা, মাসভিত্তিক চার্ট ও অন্যান্য বিশ্লেষণ আসতে শুরু করবে।</p>
+    <div class="actions-row">
+      <a class="btn" href="/entries/new">প্রথম এন্ট্রি যোগ করুন</a>
+      <a class="btn secondary" href="/entries/import">CSV থেকে ইম্পোর্ট করুন</a>
+    </div>
   </div>
-  <div class="seg" role="img" aria-label="স্ট্যাটাস অনুযায়ী ভাগ">
-    <span class="c-matched" style="width:<%= pc(stats.matched) %>%"></span>
-    <span class="c-partial" style="width:<%= pc(stats.partial) %>%"></span>
-    <span class="c-mismatched" style="width:<%= pc(stats.mismatched) %>%"></span>
-    <span class="c-pending" style="width:<%= pc(stats.pending) %>%"></span>
+<% } else { %>
+
+<div class="kpis">
+  <a class="kpi" href="/entries">
+    <div class="kpi-label">মোট এন্ট্রি</div>
+    <div class="kpi-val"><%= total %></div>
+    <div class="kpi-foot">
+      <span class="chip <%= delta > 0 ? 'up' : (delta < 0 ? 'down' : 'flat') %>"><%= delta > 0 ? '+' : '' %><%= delta %></span>
+      <span>গত ৭ দিনে <%= last7 %>টি, আগের ৭ দিনে <%= prev7 %>টি</span>
+    </div>
+  </a>
+  <a class="kpi" href="/entries?status=matched">
+    <div class="kpi-label">মিলের হার</div>
+    <div class="kpi-val"><%= matchRate %><small>%</small></div>
+    <div class="kpi-meter"><span style="width:<%= matchRate %>%; background:var(--stamp-green)"></span></div>
+    <div class="kpi-foot"><%= stats.matched %>টি মিলেছে, <%= total - stats.matched %>টি বাকি</div>
+  </a>
+  <div class="kpi">
+    <div class="kpi-label">প্রাপ্তির হার</div>
+    <div class="kpi-val"><%= fulfilRate %><small>%</small></div>
+    <div class="kpi-meter"><span style="width:<%= Math.min(100, fulfilRate) %>%"></span></div>
+    <div class="kpi-foot">চাহিদা <%= totalReq %>, প্রাপ্ত <%= totalRecv %></div>
   </div>
-  <div class="legend">
-    <a href="/entries?status=matched"><i class="c-matched"></i><span>মিলেছে</span><b><%= stats.matched %></b></a>
-    <a href="/entries?status=partial"><i class="c-partial"></i><span>আংশিক</span><b><%= stats.partial %></b></a>
-    <a href="/entries?status=mismatched"><i class="c-mismatched"></i><span>মিলেনি</span><b><%= stats.mismatched %></b></a>
-    <a href="/entries?status=pending"><i class="c-pending"></i><span>অপেক্ষমান</span><b><%= stats.pending %></b></a>
+  <div class="kpi">
+    <div class="kpi-label">গড় সরবরাহ সময়</div>
+    <div class="kpi-val"><%= avgLead === null ? '—' : avgLead %><% if (avgLead !== null) { %><small>দিন</small><% } %></div>
+    <div class="kpi-foot"><%= avgLead === null ? 'রিকুইজিশন ও গ্রহণের তারিখ দিলে হিসাব হবে' : 'রিকুইজিশন থেকে গ্রহণ পর্যন্ত' %></div>
   </div>
 </div>
 
-<div class="panel">
-  <div class="panel-title">পরিমাণ: চাহিদা বনাম প্রাপ্ত</div>
-  <div class="figs">
-    <div><b><%= totalReq %></b><span>মোট চাহিদা</span></div>
-    <div><b><%= totalRecv %></b><span>মোট প্রাপ্ত</span></div>
-    <div><b><%= diff %></b><span>পার্থক্য</span></div>
+<% if (openCount > 0) { %>
+  <div class="alert-strip">
+    <span><b><%= openCount %>টি এন্ট্রি</b> ৭ দিনের বেশি সময় ধরে মেলেনি বা অপেক্ষায় আছে।</span>
+    <a href="/entries?status=pending">অপেক্ষমান দেখুন</a>
   </div>
-  <div class="qbar"><span style="width:<%= Number(totalReq) > 0 ? Math.min(100, Math.round(Number(totalRecv) / Number(totalReq) * 100)) : 0 %>%"></span></div>
+<% } %>
+
+<div class="grid2">
+  <div class="panel">
+    <div class="panel-title">স্ট্যাটাস বণ্টন</div>
+    <div class="donut-wrap">
+      <div class="donut-box">
+        <canvas id="statusChart" aria-label="স্ট্যাটাস বণ্টনের ডোনাট চার্ট"></canvas>
+        <div class="donut-center"><b><%= total %></b><span>এন্ট্রি</span></div>
+      </div>
+      <div class="dlegend">
+        <% ['matched', 'partial', 'mismatched', 'pending'].forEach(function (k) { %>
+          <a href="/entries?status=<%= k %>"><i class="c-<%= k %>"></i><span><%= labels[k] %></span><em><%= pct(stats[k]) %>%</em><b><%= stats[k] %></b></a>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">মাসভিত্তিক এন্ট্রি (৬ মাস)</div>
+    <div class="chart-box"><canvas id="monthChart" aria-label="মাসভিত্তিক এন্ট্রির বার চার্ট"></canvas></div>
+  </div>
 </div>
 
 <div class="panel">
   <div class="panel-title">গত ১৪ দিনের ট্রেন্ড</div>
-  <canvas id="trendChart" height="180"></canvas>
+  <div class="chart-box"><canvas id="trendChart" aria-label="১৪ দিনের ট্রেন্ড"></canvas></div>
+</div>
+
+<div class="grid2">
+  <div class="panel">
+    <div class="panel-title">ঘাটতির শীর্ষ আইটেম <% if (shortageCount > 0) { %><span class="panel-sub">মোট <%= shortageCount %>টি</span><% } %></div>
+    <% if (shortages.length === 0) { %>
+      <p class="muted">কোনো ঘাটতি নেই, সব আইটেমে চাহিদা পূরণ হয়েছে।</p>
+    <% } else { %>
+      <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>আইটেম</th><th class="num">চাহিদা</th><th class="num">প্রাপ্ত</th><th class="num">ঘাটতি</th></tr></thead>
+        <tbody>
+        <% shortages.forEach(function (r) { %>
+          <tr>
+            <td><a href="/entries/<%= r.id %>/edit"><%= r.item %></a>
+              <div class="rowbar"><span style="width:<%= Math.min(100, Math.round(r.gap / r.req * 100)) %>%"></span></div></td>
+            <td class="num"><%= r.req %></td>
+            <td class="num"><%= r.recv %></td>
+            <td class="num gap"><%= r.gap %> <%= r.unit %></td>
+          </tr>
+        <% }); %>
+        </tbody>
+      </table>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">সবচেয়ে পুরনো অমীমাংসিত এন্ট্রি</div>
+    <% if (open.length === 0) { %>
+      <p class="muted">৭ দিনের বেশি পুরনো কোনো অমীমাংসিত এন্ট্রি নেই।</p>
+    <% } else { %>
+      <ul class="feed">
+        <% open.forEach(function (r) { %>
+          <li>
+            <span class="feed-dot c-<%= r.status %>"></span>
+            <div style="flex:1;min-width:0;">
+              <a href="/entries/<%= r.id %>/edit" style="text-decoration:none;color:var(--ink);font-weight:600;"><%= r.item %></a>
+              <small><%= labels[r.status] %><% if (r.req_no) { %> • <%= r.req_no %><% } %></small>
+            </div>
+            <span class="chip down"><%= r.age %> দিন</span>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="panel">
+    <div class="panel-title">প্রেরক অনুযায়ী মিলের হার</div>
+    <% if (senders.length === 0) { %>
+      <p class="muted">এন্ট্রিতে প্রেরণকারীর নাম দিলে এখানে তুলনা দেখা যাবে।</p>
+    <% } else { %>
+      <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>প্রেরক</th><th class="num">এন্ট্রি</th><th class="num">মিলের হার</th></tr></thead>
+        <tbody>
+        <% senders.forEach(function (r) { %>
+          <tr>
+            <td><%= r.name %></td>
+            <td class="num"><%= r.total %></td>
+            <td class="num"><b><%= r.rate %>%</b>
+              <div class="rowbar"><span style="width:<%= r.rate %>%;background:var(--stamp-green)"></span></div></td>
+          </tr>
+        <% }); %>
+        </tbody>
+      </table>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">সাম্প্রতিক কার্যক্রম <a class="panel-link" href="/activity">সব দেখুন</a></div>
+    <% if (activity.length === 0) { %>
+      <p class="muted">এখনো কোনো কার্যক্রম নেই।</p>
+    <% } else { %>
+      <ul class="feed">
+        <% activity.forEach(function (a) { %>
+          <li>
+            <span class="feed-dot"></span>
+            <div style="flex:1;min-width:0;">
+              <b><%= a.user_name || 'অজানা' %></b> <%= actionLabels[a.action] || a.action %>
+              <small><%= a.item_name || '' %><% if (a.req_no) { %> (<%= a.req_no %>)<% } %> • <%= ago(a.created_at) %></small>
+            </div>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js" nonce="<%= cspNonce %>"></script>
 <script nonce="<%= cspNonce %>">
-  const trend = <%- JSON.stringify(trend) %>;
-  const ctx = document.getElementById('trendChart');
-  if (ctx && trend.length) {
+  (function () {
+    var C = { matched: '#1f7a4c', partial: '#c08a2b', mismatched: '#a3403f', pending: '#9aa3b2' };
+    var stats = <%- JSON.stringify(stats) %>;
+    var months = <%- JSON.stringify(months) %>;
+    var trend = <%- JSON.stringify(trend) %>;
+    var L = { matched: 'মিলেছে', partial: 'আংশিক', mismatched: 'মিলেনি', pending: 'অপেক্ষমান' };
+    var keys = ['matched', 'partial', 'mismatched', 'pending'];
+
     Chart.defaults.font.family = '"Hind Siliguri", sans-serif';
     Chart.defaults.color = '#65728a';
-    new Chart(ctx, {
+
+    var sc = document.getElementById('statusChart');
+    if (sc) new Chart(sc, {
+      type: 'doughnut',
+      data: { labels: keys.map(function (k) { return L[k]; }), datasets: [{ data: keys.map(function (k) { return stats[k]; }), backgroundColor: keys.map(function (k) { return C[k]; }), borderWidth: 2, borderColor: '#fff' }] },
+      options: { cutout: '68%', plugins: { legend: { display: false } } }
+    });
+
+    var mc = document.getElementById('monthChart');
+    if (mc) new Chart(mc, {
+      type: 'bar',
+      data: {
+        labels: months.map(function (m) { return m.label; }),
+        datasets: keys.map(function (k) { return { label: L[k], data: months.map(function (m) { return m[k]; }), backgroundColor: C[k], borderRadius: 3, maxBarThickness: 34 }; })
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
+        scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: '#eef1f5' } } }
+      }
+    });
+
+    var tc = document.getElementById('trendChart');
+    if (tc && trend.length) new Chart(tc, {
       type: 'line',
       data: {
         labels: trend.map(function (r) { return r.day.slice(5); }),
@@ -64,12 +233,14 @@
         ]
       },
       options: {
-        responsive: true,
+        responsive: true, maintainAspectRatio: false,
         plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#eef1f5' } }, x: { grid: { display: false } } }
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: '#eef1f5' } }, x: { grid: { display: false } } }
       }
     });
-  }
+  })();
 </script>
+
+<% } %>
 
 <%- include('partials/footer') %>
