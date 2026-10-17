@@ -473,3 +473,24 @@ a.kpi:hover{border-color:var(--primary)}
 .toolbar-link{display:inline-flex;align-items:center;gap:7px}
 .empty-icon{display:flex;justify-content:center;margin-bottom:14px;color:var(--graphite-soft)}
 .empty-icon .icon{width:40px;height:40px;stroke-width:1.5}
+
+/* Attachments */
+.attach-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.attach-row .entry-thumb-link{margin-top:0}
+.attach-chip{display:inline-block;padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card);color:var(--primary);font-size:13px;font-weight:600;text-decoration:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.attach-list{list-style:none;margin:0 0 10px;padding:0}
+.attach-list li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px}
+.attach-list a{color:var(--primary);font-weight:600;word-break:break-all}
+.attach-size{color:var(--graphite-soft);font-size:12.5px}
+/* Mismatch page */
+.tab-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;margin-bottom:4px;-webkit-overflow-scrolling:touch}
+.tab-link{flex-shrink:0;padding:8px 13px;border-radius:99px;border:1px solid var(--border);background:var(--card);color:var(--graphite);font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap}
+.tab-link.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.tab-count{display:inline-block;min-width:20px;padding:0 6px;margin-left:4px;border-radius:99px;background:var(--stamp-grey-bg);color:var(--stamp-grey);font-size:12px;text-align:center}
+.tab-link.active .tab-count{background:rgba(255,255,255,.2);color:#fff}
+.mismatch-note{color:var(--graphite-soft);font-size:13px;margin:0 0 14px}
+.issue-list{list-style:none;margin:12px 0 0;padding:0}
+.issue{position:relative;padding:8px 12px 8px 26px;margin-bottom:6px;border-radius:var(--radius-sm);font-size:14px}
+.issue::before{content:"";position:absolute;left:11px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:currentColor}
+.issue.err{background:var(--stamp-red-bg);color:var(--stamp-red)}
+.issue.warn{background:var(--stamp-amber-bg);color:var(--stamp-amber)}
