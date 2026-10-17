@@ -19,11 +19,12 @@
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>',
     upload: '<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
+    warn: '<path d="M12 3l10 18H2L12 3zM12 10v5M12 18h.01"/>',
     users: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M17 4a3.5 3.5 0 010 7M22 20c0-2.5-1.5-4-4-5"/>'
   };
   var ico = function (n) { return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + I[n] + '</svg>'; };
   var mark = '<svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="7" width="20" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="15" y="11" width="20" height="26" rx="4" fill="#b08a3e"/><path d="M21 24l4 4 7-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  var side = [['/', 'chart', 'সারসংক্ষেপ', 'dashboard'], ['/entries', 'list', 'সব এন্ট্রি', 'entries'], ['/entries/new', 'plus', 'নতুন এন্ট্রি', 'new'], ['/activity', 'clock', 'অ্যাক্টিভিটি লগ', 'activity'], ['/entries/import', 'upload', 'CSV ইম্পোর্ট', 'import']];
+  var side = [['/', 'chart', 'সারসংক্ষেপ', 'dashboard'], ['/entries', 'list', 'সব এন্ট্রি', 'entries'], ['/mismatches', 'warn', 'অমিল তালিকা', 'mismatches'], ['/entries/new', 'plus', 'নতুন এন্ট্রি', 'new'], ['/activity', 'clock', 'অ্যাক্টিভিটি লগ', 'activity'], ['/entries/import', 'upload', 'CSV ইম্পোর্ট', 'import']];
   if (user.role === 'admin') side.push(['/admin/users', 'users', 'স্টাফ ম্যানেজমেন্ট', 'admin']);
   side.push(['/profile', 'user', 'প্রোফাইল', 'profile']);
   var bottom = [['/entries', 'list', 'তালিকা', 'entries'], ['/entries/new', 'plus', 'নতুন এন্ট্রি', 'new'], ['/', 'chart', 'সারসংক্ষেপ', 'dashboard'], ['/profile', 'user', 'প্রোফাইল', 'profile']];
@@ -33,7 +34,7 @@
 <aside class="sidebar">
   <div class="brand-block"><%- mark %><div><div class="brand-title">আইটি রিকুইজিশন ট্র্যাকার</div><div class="brand-sub">মিলকরণ • হেড অফিস</div></div></div>
   <nav class="side-nav">
-    <% side.forEach(function (n, i) { if (i === 3) { %><div class="side-sep"></div><% } %>
+    <% side.forEach(function (n, i) { if (i === 4) { %><div class="side-sep"></div><% } %>
     <a href="<%= n[0] %>" class="<%= nav === n[3] ? 'active' : '' %>"><%- ico(n[1]) %><span><%= n[2] %></span></a>
     <% }); %>
   </nav>
