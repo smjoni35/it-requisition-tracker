@@ -56,3 +56,46 @@ test('computeAutoStatus: no requisition quantity but something received is match
   const status = computeAutoStatus({ item_name: 'Laptop', gatepass_item_name: 'Laptop', req_qty: 0, received_qty: 2 });
   assert.equal(status, 'matched');
 });
+
+const { analyzeEntry, hasMismatchIssue } = require('../routes/matching');
+
+const NOW = new Date('2026-10-17T00:00:00Z');
+const types = (entry, opts) => analyzeEntry(entry, { now: NOW, ...opts }).map((i) => i.type);
+
+test('analyzeEntry: fully matching entry with proof has no issues', () => {
+  const e = { item_name: 'Dell Laptop', gatepass_item_name: 'Dell Laptop', req_qty: 2, received_qty: 2, gatepass_no: 'GP-1' };
+  assert.deepEqual(types(e, { attachmentCount: 1 }), []);
+});
+
+test('analyzeEntry: different item name is flagged', () => {
+  const e = { item_name: 'Laptop', gatepass_item_name: 'Printer Toner', req_qty: 1, received_qty: 1, gatepass_no: 'GP-1' };
+  assert.ok(types(e, { attachmentCount: 1 }).includes('name'));
+});
+
+test('analyzeEntry: short and excess quantities are flagged separately', () => {
+  const base = { item_name: 'Mouse', gatepass_item_name: 'Mouse', gatepass_no: 'GP-2' };
+  assert.deepEqual(types({ ...base, req_qty: 10, received_qty: 6 }, { attachmentCount: 1 }), ['short']);
+  assert.deepEqual(types({ ...base, req_qty: 10, received_qty: 12 }, { attachmentCount: 1 }), ['excess']);
+});
+
+test('analyzeEntry: gate pass with zero received quantity is flagged', () => {
+  const e = { item_name: 'Mouse', gatepass_item_name: 'Mouse', req_qty: 3, received_qty: 0, gatepass_no: 'GP-3' };
+  assert.ok(types(e, { attachmentCount: 1 }).includes('no_qty'));
+});
+
+test('analyzeEntry: gate pass dated before the requisition is flagged', () => {
+  const e = { item_name: 'Mouse', gatepass_item_name: 'Mouse', req_qty: 1, received_qty: 1, gatepass_no: 'GP-4', req_date: '2026-10-10', gatepass_date: '2026-10-05' };
+  assert.ok(types(e, { attachmentCount: 1 }).includes('date'));
+});
+
+test('analyzeEntry: old requisition with no gate pass is overdue, a recent one is not', () => {
+  assert.deepEqual(types({ item_name: 'Cable', req_qty: 5, req_date: '2026-10-01' }), ['overdue']);
+  assert.deepEqual(types({ item_name: 'Cable', req_qty: 5, req_date: '2026-10-15' }), []);
+});
+
+test('analyzeEntry: missing proof is reported but is not a mismatch by itself', () => {
+  const e = { item_name: 'Mouse', gatepass_item_name: 'Mouse', req_qty: 1, received_qty: 1, gatepass_no: 'GP-5' };
+  const issues = analyzeEntry(e, { now: NOW, attachmentCount: 0 });
+  assert.deepEqual(issues.map((i) => i.type), ['no_proof']);
+  assert.equal(hasMismatchIssue(issues), false);
+});
