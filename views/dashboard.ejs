@@ -3,7 +3,7 @@
   var pct = function (n) { return total ? Math.round(n / total * 100) : 0; };
   var delta = last7 - prev7;
   var labels = { matched: 'মিলেছে', partial: 'আংশিক', mismatched: 'মিলেনি', pending: 'অপেক্ষমান' };
-  var actionLabels = { created: 'নতুন এন্ট্রি যোগ করেছেন', updated: 'এন্ট্রি আপডেট করেছেন', status_changed: 'স্ট্যাটাস বদলেছেন', deleted: 'এন্ট্রি মুছেছেন', imported: 'CSV ইম্পোর্ট করেছেন' };
+  var actionLabels = { created: 'নতুন এন্ট্রি যোগ করেছেন', updated: 'এন্ট্রি আপডেট করেছেন', status_changed: 'স্ট্যাটাস বদলেছেন', deleted: 'এন্ট্রি মুছেছেন', imported: 'CSV ইম্পোর্ট করেছেন', password_recovered: 'পাসওয়ার্ড রিসেট করেছেন' };
   var ago = function (d) {
     var m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
     if (m < 1) return 'এইমাত্র';
@@ -21,6 +21,7 @@
   </div>
   <div class="actions-row" style="margin:0;">
     <a class="btn small" href="/entries/new">+ নতুন এন্ট্রি</a>
+    <a class="btn small secondary" href="/mismatches">অমিল তালিকা</a>
     <a class="btn small secondary" href="/entries/print">রিপোর্ট প্রিন্ট / PDF</a>
     <a class="btn small secondary" href="/entries/export/excel">এক্সেল</a>
   </div>

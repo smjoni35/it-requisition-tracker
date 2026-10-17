@@ -1,0 +1,95 @@
+<%- include('partials/header', { pageTitle: 'অমিল তালিকা', user: user, activeNav: activeNav }) %>
+
+<div class="page-head">
+  <div>
+    <h2>অমিল তালিকা</h2>
+    <p>রিকুইজিশনের সাথে গেট পাস যেখানে মিলছে না, কারণসহ</p>
+  </div>
+  <div class="actions-row" style="margin:0;">
+    <a class="btn small secondary" href="/mismatches/export?type=<%= tab %>">এক্সেল</a>
+  </div>
+</div>
+
+<div class="tab-row">
+  <% tabs.forEach(function(t) { %>
+    <a class="tab-link <%= tab === t.key ? 'active' : '' %>" href="/mismatches?type=<%= t.key %>"><%= t.label %> <span class="tab-count"><%= counts[t.key] %></span></a>
+  <% }) %>
+</div>
+
+<p class="mismatch-note">
+  যে এন্ট্রি হাতে "মিলেছে" করা হয়েছে সেটি এখানে আসে না। কোনো এন্ট্রি <%= overdueDays %> দিনের বেশি গেট পাস ছাড়া পড়ে থাকলে "গেট পাস আসেনি" তে দেখায়।
+</p>
+
+<% if (entries.length === 0) { %>
+  <div class="empty-state">এই ভাগে কোনো অমিল নেই।</div>
+<% } %>
+
+<% entries.forEach(function(e) { var atts = attachmentsByEntry[e.id] || []; %>
+  <article class="entry-card <%= e.status %>">
+    <div class="entry-top">
+      <div>
+        <div class="entry-name"><%= e.item_name %></div>
+        <% if (e.creator_name) { %><div class="entry-desc"><%= e.creator_name %></div><% } %>
+      </div>
+      <span class="stamp <%= e.status %>"><%= labels[e.status] || e.status %></span>
+    </div>
+
+    <div class="ledger">
+      <div>
+        <div class="ledger-h">রিকুইজিশন</div>
+        <div class="ledger-no mono"><%= e.req_no || '—' %></div>
+        <div class="ledger-q"><b><%= Number(e.req_qty) || 0 %></b><%= e.unit || '' %></div>
+      </div>
+      <div>
+        <div class="ledger-h">গেট পাস</div>
+        <div class="ledger-no mono"><%= e.gatepass_no || '—' %></div>
+        <div class="ledger-q"><b><%= Number(e.received_qty) || 0 %></b><%= e.unit || '' %></div>
+      </div>
+    </div>
+
+    <ul class="issue-list">
+      <% e.reasons.forEach(function(r) { %>
+        <li class="issue <%= r.severity %>"><%= r.text %></li>
+      <% }) %>
+    </ul>
+
+    <% if (atts.length > 0) { %>
+      <div class="attach-row">
+        <% atts.forEach(function(a) { if (a.mime.indexOf('image/') === 0) { %>
+          <a href="/attachments/<%= a.id %>" target="_blank" rel="noopener" class="entry-thumb-link"><img class="entry-thumb" src="/attachments/<%= a.id %>" alt="<%= a.filename %>" loading="lazy"></a>
+        <% } else { %>
+          <a href="/attachments/<%= a.id %>" class="attach-chip"><%= a.filename %></a>
+        <% } }) %>
+      </div>
+    <% } %>
+
+    <details class="status-edit">
+      <summary>ঠিক আছে হিসেবে চিহ্নিত করুন</summary>
+      <form class="status-select-form" method="POST" action="/entries/<%= e.id %>/status">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="back" value="/mismatches">
+        <input type="hidden" name="manual_status" value="matched">
+        <input type="text" name="status_note" placeholder="কেন ঠিক আছে (ঐচ্ছিক)">
+        <button class="btn small secondary" type="submit">মিলেছে করুন</button>
+      </form>
+    </details>
+
+    <div class="entry-links">
+      <a href="/entries/<%= e.id %>/edit">এডিট করে ঠিক করুন</a>
+    </div>
+  </article>
+<% }) %>
+
+<% if (totalPages > 1) { %>
+  <div class="pagination">
+    <% if (currentPage > 1) { %>
+      <a class="btn small secondary" href="/mismatches?type=<%= tab %>&page=<%= currentPage - 1 %>">← আগের</a>
+    <% } %>
+    <span class="pagination-info"><%= currentPage %> / <%= totalPages %></span>
+    <% if (currentPage < totalPages) { %>
+      <a class="btn small secondary" href="/mismatches?type=<%= tab %>&page=<%= currentPage + 1 %>">পরের →</a>
+    <% } %>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

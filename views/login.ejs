@@ -10,6 +10,7 @@
     <div class="sub">রিকুইজিশন ও গেট পাস মিলকরণ পোর্টাল</div>
 
     <% if (error) { %><div class="error-box"><%= error %></div><% } %>
+    <% if (typeof success !== 'undefined' && success) { %><div class="success-box"><%= success %></div><% } %>
 
     <form method="POST" action="/login">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -23,6 +24,7 @@
       </div>
       <button class="btn full" type="submit">লগইন</button>
     </form>
+    <div class="auth-switch"><a href="/recover">অ্যাডমিন পাসওয়ার্ড ভুলে গেছেন?</a></div>
   </div>
 </div>
 

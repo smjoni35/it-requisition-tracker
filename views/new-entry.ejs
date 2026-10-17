@@ -86,14 +86,19 @@
     </div>
 
     <div class="field">
-      <label>গেট পাসের ছবি / প্রমাণ (ঐচ্ছিক, সর্বোচ্চ ২MB)</label>
-      <% if (editing && entry.image_data) { %>
-        <div class="current-image-preview">
-          <img src="/entries/<%= entry.id %>/image" alt="বর্তমান ছবি">
-          <label class="remove-image-check"><input type="checkbox" name="remove_image"> এই ছবিটি মুছে ফেলুন</label>
-        </div>
+      <label>গেট পাসের কপি / প্রমাণ (ঐচ্ছিক) — ছবি বা PDF, সর্বোচ্চ ৫টি ফাইল, প্রতিটি ৩MB পর্যন্ত</label>
+      <% if (typeof attachments !== 'undefined' && attachments.length > 0) { %>
+        <ul class="attach-list">
+          <% attachments.forEach(function(a) { %>
+            <li>
+              <a href="/attachments/<%= a.id %>" target="_blank" rel="noopener"><%= a.filename %></a>
+              <span class="attach-size"><%= a.size >= 1048576 ? (a.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(a.size / 1024)) + ' KB' %></span>
+              <label class="remove-image-check"><input type="checkbox" name="remove_attachments" value="<%= a.id %>"> বাদ দিন</label>
+            </li>
+          <% }) %>
+        </ul>
       <% } %>
-      <input type="file" name="image" accept="image/*">
+      <input type="file" name="attachments" accept="image/*,application/pdf" multiple>
     </div>
   </div>
 

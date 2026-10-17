@@ -1,0 +1,42 @@
+<%- include('partials/header', { pageTitle: 'অ্যাডমিন পাসওয়ার্ড রিকভারি', user: null }) %>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="7" width="20" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="15" y="11" width="20" height="26" rx="4" fill="#b08a3e"/><path d="M21 24l4 4 7-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>আইটি রিকুইজিশন<br>ট্র্যাকার</div>
+    </div>
+    <h1>অ্যাডমিন পাসওয়ার্ড রিকভারি</h1>
+    <div class="sub">সার্ভারে সেট করা রিকভারি কী দিয়ে নতুন পাসওয়ার্ড দিন</div>
+
+    <% if (error) { %><div class="error-box"><%= error %></div><% } %>
+
+    <% if (!enabled) { %>
+      <div class="error-box">এই সুবিধা এখনো চালু করা হয়নি। Render-এর Environment-এ কমপক্ষে ১২ অক্ষরের <b>RECOVERY_KEY</b> যোগ করে সার্ভার রিস্টার্ট করুন।</div>
+    <% } else { %>
+    <form method="POST" action="/recover">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <label>অ্যাডমিনের ইমেইল</label>
+        <input type="email" name="email" value="<%= email %>" required autofocus autocomplete="username">
+      </div>
+      <div class="field">
+        <label>রিকভারি কী</label>
+        <input type="password" name="recovery_key" required autocomplete="off">
+      </div>
+      <div class="field">
+        <label>নতুন পাসওয়ার্ড</label>
+        <input type="password" name="new_password" required minlength="6" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label>নতুন পাসওয়ার্ড আবার লিখুন</label>
+        <input type="password" name="confirm_password" required minlength="6" autocomplete="new-password">
+      </div>
+      <button class="btn full" type="submit">পাসওয়ার্ড বদলান</button>
+    </form>
+    <% } %>
+    <div class="auth-switch"><a href="/login">লগইন পেজে ফিরুন</a></div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
