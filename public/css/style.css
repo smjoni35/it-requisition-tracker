@@ -467,3 +467,9 @@ a.kpi:hover{border-color:var(--primary)}
 .empty-hero h3{font-size:21px;margin-bottom:8px}
 .empty-hero p{color:var(--graphite-soft);max-width:440px;margin:0 auto 20px;font-size:14.5px}
 .empty-hero .actions-row{justify-content:center;margin:0}
+
+/* Inline icons */
+.icon{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.toolbar-link{display:inline-flex;align-items:center;gap:7px}
+.empty-icon{display:flex;justify-content:center;margin-bottom:14px;color:var(--graphite-soft)}
+.empty-icon .icon{width:40px;height:40px;stroke-width:1.5}
