@@ -18,10 +18,10 @@
 </form>
 
 <div class="toolbar-row">
-  <a class="toolbar-link" href="/entries/print?q=<%= encodeURIComponent(q) %>&status=<%= status %>">📄 প্রিন্ট রিপোর্ট</a>
-  <a class="toolbar-link" href="/entries/export/excel?q=<%= encodeURIComponent(q) %>&status=<%= status %>">📊 এক্সেল এক্সপোর্ট</a>
-  <a class="toolbar-link" href="/entries/import">⬆️ CSV ইম্পোর্ট</a>
-  <a class="toolbar-link" href="/activity">📜 অ্যাক্টিভিটি লগ</a>
+  <a class="toolbar-link" href="/entries/print?q=<%= encodeURIComponent(q) %>&status=<%= status %>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><rect x="6" y="14" width="12" height="7"/></svg> প্রিন্ট রিপোর্ট</a>
+  <a class="toolbar-link" href="/entries/export/excel?q=<%= encodeURIComponent(q) %>&status=<%= status %>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg> এক্সেল এক্সপোর্ট</a>
+  <a class="toolbar-link" href="/entries/import"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg> CSV ইম্পোর্ট</a>
+  <a class="toolbar-link" href="/activity"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> অ্যাক্টিভিটি লগ</a>
 </div>
 
 <div style="color:var(--graphite-soft); font-size:13px; margin:4px 0 14px;">মোট <%= totalCount %>টি এন্ট্রি পাওয়া গেছে</div>
